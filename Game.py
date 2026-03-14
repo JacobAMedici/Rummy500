@@ -1,22 +1,20 @@
+from Card import *
+
 class Game:
   def __init__(self, player1, player2):
-    self.deck = Deck
+    self.deck = Deck()
     self.deck.shuffle()
     self.discardPile = []
-    discardPile.append(self.deck.pop())
+    self.discardPile.append(self.deck.pop())
     self.player1 = player1
     self.player2 = player2
     self.gameOver = False
     self.playersTurn = player1
-    # Give each player 14 cards
+    # Give each player 13 cards
     for cardNum in range(1, 14):
-      self.player2.appendPlayerCard(deck.pop())
-      self.player1.appendPlayerCard(deck.pop())
+      self.player2.appendPlayerCard(self.deck.pop())
+      self.player1.appendPlayerCard(self.pop())
     self.startGame()
-
-  def startGame(self):
-    while (not gameOver):
-      self.startRound()
 
   def startRound(self):
     roundOver = False

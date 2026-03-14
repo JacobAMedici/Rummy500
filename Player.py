@@ -1,4 +1,6 @@
-class Player:
+from abc import ABC
+
+class Player(ABC):
   def __init__(self):
     self.runMelds = []
     self.setMelds = []
