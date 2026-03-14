@@ -1,2 +1,20 @@
+from Player import Player
+
 class AIPlayer(Player):
-  pass
+  def have_player_draw(self, game):
+    pass
+
+  def have_player_action(self, game):
+    pass
+
+  def have_player_discard(self, game):
+    pass
+
+  def find_all_draw_actions(self):
+    pass
+
+  def find_all_meld_actions(self):
+    pass
+
+  def find_all_discard_actions(self):
+    pass

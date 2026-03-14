@@ -1,51 +1,39 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 class Player(ABC):
   def __init__(self):
     self.runMelds = []
     self.setMelds = []
     self.hand = []
+    # Visible hand just clarifies which cards the other player knows if they are tracking their draws
     self.visibleHand = []
     self.score = 0
-    self.humanPlayer = False
 
-  # Return -1 to draw from the stack, return the index of the desired card to draw from discard
-  def getDrawAction(self):
-    # Choose the best draw action
+  @abstractmethod
+  def have_player_draw(self, game):
     pass
 
-  # Lets the player take the actions that they wish to take
-  def performMeldActions(self):
-    # Choose the best meld action(s)
+  @abstractmethod
+  def have_player_action(self, game):
     pass
 
-  # Return the index of the card that the player wishes to discard
-  def getDiscardAction(self):
-    # Choose the best card to discard
+  @abstractmethod
+  def have_player_discard(self, game):
     pass
 
-  def appendPlayerCard(self, card):
+  # Play a card to an active set
+  def play_card_set(self, card):
+      pass
+
+  # Play a card to an active set
+  def play_card_run(self, card):
+      pass
+
+  def append_player_card(self, card):
     self.hand.append(card)
 
-  def removePlayerCard(self, cardIndex):
-    self.hand.pop(card)
+  def remove_player_card(self, card_index):
+    self.hand.pop(card_index)
 
-  # Check if it can be played off of current melds for both players and play it, otherwise throw an error
-  def playCard(self, cardIndex):
-    pass
-
-  def findAllDrawActions(self):
-    pass
-
-  def findAllMeldActions(self):
-    pass
-
-  # Play a card to an active set
-  def playCardSet(self, card):
-    if (self.canPlayCard(card)):
-      pass
-
-  # Play a card to an active set
-  def playCardRun(self, card):
-    if (self.canPlayCard(card)):
-      pass
+  def add_to_scores(self, score):
+    self.score += score
