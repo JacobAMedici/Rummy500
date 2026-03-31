@@ -2,11 +2,10 @@ from abc import ABC, abstractmethod
 
 class Player(ABC):
   def __init__(self):
-    self.runMelds = []
-    self.setMelds = []
+    self.played_cards = []
     self.hand = []
     # Visible hand just clarifies which cards the other player knows if they are tracking their draws
-    self.visibleHand = []
+    self.visible_hand = []
     self.score = 0
 
   @abstractmethod
@@ -14,7 +13,7 @@ class Player(ABC):
     pass
 
   @abstractmethod
-  def have_player_action(self, game):
+  def have_player_act(self, game):
     pass
 
   @abstractmethod
@@ -23,11 +22,11 @@ class Player(ABC):
 
   # Play a card to an active set
   def play_card_set(self, card):
-      pass
+    pass
 
   # Play a card to an active set
   def play_card_run(self, card):
-      pass
+    pass
 
   def append_player_card(self, card):
     self.hand.append(card)

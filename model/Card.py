@@ -22,6 +22,11 @@ class Suit(Enum):
   HEARTS = "Hearts"
   SPADES = "Spades"
 
+class MeldType(Enum):
+  SET = "Set"
+  RUN = "Run"
+  INVALID = "Invalid"
+
 class Card:
   def __init__(self, rank, suit):
     self.rank = rank
@@ -75,3 +80,42 @@ class Deck:
 
   def pop(self):
     return self.deck.pop()
+
+def is_valid_meld(cards):
+  if len(cards) < 3:
+    return False, MeldType.INVALID
+
+  if len({card.rank for card in cards}) == 1:
+    return True, MeldType.SET
+
+  if len({card.suit for card in cards}) == 1:
+    ranks = [card.rank for card in cards]
+    max_rank = max(ranks)
+    min_rank = min(ranks)
+    if max_rank - min_rank == len(set(ranks)) - 1:
+      return True, MeldType.RUN
+
+  return False, MeldType.INVALID
+
+
+class Meld:
+  def __init__(self, cards):
+    self.cards = cards
+    validity_result, meld_type = is_valid_meld(cards)
+    if not validity_result:
+      raise Exception("Invalid Meld")
+    self.meld_type = meld_type
+
+
+  def accepts(self, new_cards):
+    cards_to_check = self.cards
+    cards_to_check.append(new_cards)
+    return is_valid_meld(cards_to_check)
+
+  def add(self, new_cards):
+    cards_to_check = self.cards
+    cards_to_check.append(new_cards)
+
+  def __str__(self):
+    sorted_cards = sorted(self.cards, key=lambda card: card.rank)
+    return ' '.join(str(card) for card in sorted_cards)

@@ -1,10 +1,10 @@
-from Player import Player
+from model.Player import Player
 
 class AIPlayer(Player):
   def have_player_draw(self, game):
     pass
 
-  def have_player_action(self, game):
+  def have_player_act(self, game):
     pass
 
   def have_player_discard(self, game):
