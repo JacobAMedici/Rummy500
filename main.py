@@ -1,19 +1,19 @@
 import sys
 from model.Game import Game
-from model.HumanPlayer import HumanPlayer
 from model.AIPlayer import AIPlayer
 from controller.GameController import create_app
+from model.Player import Player
 
 MODES = {
-  'hh': (HumanPlayer, HumanPlayer),
-  'ha': (HumanPlayer, AIPlayer),
+  'hh': (Player, Player),
+  'ha': (Player, AIPlayer),
   'aa': (AIPlayer, AIPlayer)
 }
 
 def run_game(player1_type, player2_type):
   player1 = player1_type()
   player2 = player2_type()
-  needs_flask = isinstance(player1, HumanPlayer) or isinstance(player2, HumanPlayer)
+  needs_flask = not isinstance(player1, AIPlayer) and not isinstance(player2, AIPlayer)
 
   if needs_flask:
     app = create_app(player1, player2)

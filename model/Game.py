@@ -17,10 +17,15 @@ class Game:
     self.discard_pile.append(self.deck.pop())
     self.player1.hand.sort(key=lambda x: (x.rank, x.suit.name))
     self.player2.hand.sort(key=lambda x: (x.rank, x.suit.name))
+    self.player_must_use = None
 
   def discard(self, index):
-    self.discard_pile.append(self.players_turn.hand.pop(index))
-    self._change_turn()
+    try:
+      self.discard_pile.append(self.players_turn.hand.pop(index))
+      self._change_turn()
+      return True
+    except IndexError as e:
+      return False
 
   def draw_from_deck(self):
     try:
@@ -28,8 +33,9 @@ class Game:
       self.players_turn.hand.append(card)
       self.phase = 'act'
       self.players_turn.hand.sort(key=lambda x: (x.rank, x.suit.name))
+      return True
     except Exception as e:
-      pass
+      return False
 
   def draw_from_discard(self, index):
     try:
@@ -37,13 +43,18 @@ class Game:
         card = self.discard_pile.pop(main_index)
         self.players_turn.hand.append(card)
         self.players_turn.visible_hand.append(card)
-      # TODO: Ensure they play that round
+      self.player_must_use = self.players_turn.hand[-1]
       self.phase = 'act'
       self.players_turn.hand.sort(key=lambda x: (x.suit.name, x.rank))
+      return True
     except Exception as e:
-      pass
+      return False
 
   def play_cards(self, cards, meld_type):
+    if self.player_must_use and not cards.contains(self.player_must_use):
+      raise ValueError("You must use the card you drew")
+    if len(cards) >= len(self.players_turn.hand):
+      raise ValueError("You must use the card you drew")
     if len(cards) == 1:
       melds = self.can_play_cards(cards)
       for meld in melds:
@@ -67,6 +78,7 @@ class Game:
         print(e)
     for card in cards:
       self.players_turn.played_cards.append(card)
+    self.player_must_use = None
 
   def _change_turn(self):
     if self.players_turn == self.player1:
@@ -95,9 +107,12 @@ class Game:
         return True
     potential_player_hand = player.hand.copy()
     potential_player_hand.append(card)
-    if len(get_all_possible_melds(potential_player_hand)) > 1:
+    set_cards = [card for meld in self.melds if meld.meld_type == MeldType.SET for card in meld.cards]
+    run_cards = [card for meld in self.melds if meld.meld_type == MeldType.RUN for card in meld.cards]
+    if len(get_all_possible_melds(potential_player_hand, set_cards, run_cards)) > 1:
       return True
-    return False
+    else:
+      return False
 
   def can_play_cards(self, cards):
     possible_melds = []

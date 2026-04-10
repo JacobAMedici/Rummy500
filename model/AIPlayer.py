@@ -1,5 +1,7 @@
 import random
 
+from model import Helpers
+from model.Card import MeldType
 from model.Player import Player
 
 class AIPlayer(Player):
@@ -25,20 +27,23 @@ class AIPlayer(Player):
     game_copy = game.deepcopy(game)
     action_result.append((None, self.get_state_equity(game_copy)))
 
-    for meld in game.get_legal_melds():
+    set_cards = [card for meld in self.melds if meld.meld_type == MeldType.SET for card in meld.cards]
+    run_cards = [card for meld in self.melds if meld.meld_type == MeldType.RUN for card in meld.cards]
+    for meld in Helpers.get_all_possible_melds(game.players_turn.hand, set_cards, run_cards)():
         game_copy = game.deepcopy(game)
-        game_copy.play_meld(meld)
+        game_copy.play_meld(meld[0])
         # TODO: Multiply this by the coefficient to disincentive playing early
         equity = self.get_state_equity(game_copy)
-        action_result.append((meld, equity))
+        action_result.append(((meld[0], meld[1]), equity))
 
     for card in game.players_turn.hand:
-      game_copy = game.deepcopy(game)
-      if game_copy.can_play_cards([card]):
-        game_copy.play_card(card)
+      possible_melds = game.can_play_cards([card])
+      for meld in possible_melds:
+        game_copy = game.deepcopy(game)
+        game_copy.play_cards([card], meld.meld_type)
         # TODO: Multiply this by the coefficient to disincentive playing early
         equity = self.get_state_equity(game_copy)
-        action_result.append(([card], equity))
+        action_result.append((([card]), equity))
 
     return self.make_choice(action_result, epsilon, decay)
 
