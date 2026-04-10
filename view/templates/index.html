@@ -123,15 +123,16 @@
       <div id="player1-display" class="player-game-display-panel">
         <h3>Game:</h3>
         Discards: {{ game.discard_pile | join(' ') }} <br>
-        Draw Pile: {{ game.deck | length }} <br><br>
+        Draw Pile: {{ game.deck | length }} <br>
+        Melds: {{ game.melds | join(' | ') }} <br>
 
         <h3>Player 1:</h3>
         Hand: {{ game.player1.hand | join(' ') }} <br>
-        Melds: {{ game.player1.melds | join(' | ') }} <br><br>
+<!--        Melds: {{ game.player1.melds | join(' | ') }} <br><br>-->
 
         <h3>Player 2:</h3>
         Hand: {% for card in game.player2.hand %}[] {% endfor %} <br>
-        Melds: {{ game.player2.melds | join(' | ') }} <br>
+<!--        Melds: {{ game.player2.melds | join(' | ') }} <br>-->
       </div>
       <div id="p1-prompt-area">
         {{ player_choice(game.player1, game.player2) }}
@@ -144,14 +145,15 @@
         <h3>Game:</h3>
         Discards: {{ game.discard_pile | join(' ') }} <br>
         Draw Pile: {{ game.deck | length }} <br><br>
+        Melds: {{ game.melds | join(' | ') }} <br>
 
         <h3>Player 1:</h3>
         Hand: {% for card in game.player1.hand %}[] {% endfor %} <br>
-        Melds: {{ game.player1.melds | join(' | ') }} <br><br>
+<!--        Melds: {{ game.player1.melds | join(' | ') }} <br><br>-->
 
         <h3>Player 2:</h3>
         Hand: {{ game.player2.hand | join(' ') }} <br>
-        Melds: {{ game.player2.melds | join(' | ') }} <br>
+<!--        Melds: {{ game.player2.melds | join(' | ') }} <br>-->
       </div>
       <div id="p2-prompt-area">
         {{ player_choice(game.player2, game.player1) }}

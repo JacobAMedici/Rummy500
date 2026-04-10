@@ -17,17 +17,10 @@ def create_app(player1, player2):
   def draw():
     source = request.form.get('source')
     index = request.form.get('index')
-
-    try:
-      if source == 'deck':
-        card = game.deck.pop()
-        game.players_turn.hand.append(card)
-      elif source == 'discard':
-        card = game.discard_pile.pop(int(index))
-        game.players_turn.hand.append(card)
-      game.phase = 'act'
-    except Exception as e:
-      print(e)
+    if source == 'deck':
+      game.draw_from_deck()
+    elif source == 'discard':
+      game.draw_from_discard(int(index))
     return redirect(url_for('index'))
 
   @app.route('/meld', methods=['POST'])
@@ -41,10 +34,10 @@ def create_app(player1, player2):
       meld_type = MeldType.INVALID
 
     input_indices = request.form.get('index')
-    indices = [int(index) for index in input_indices.split()]
+    indices = [int(index) for index in input_indices.split(" ")]
     cards = [game.players_turn.hand[index] for index in indices]
     game.play_cards(cards, meld_type)
-    handle_game_over()
+    return handle_game_over()
 
   @app.route('/done_acting', methods=['POST'])
   def done_acting():
@@ -54,8 +47,8 @@ def create_app(player1, player2):
   @app.route('/discard', methods=['POST'])
   def discard():
     index = request.form.get('index')
-    game.discard(index)
-    handle_game_over()
+    game.discard(int(index))
+    return handle_game_over()
 
   @app.route('/winner', methods=['POST'])
   def winner():

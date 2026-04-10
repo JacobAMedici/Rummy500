@@ -108,13 +108,12 @@ class Meld:
 
 
   def accepts(self, new_cards):
-    cards_to_check = self.cards
-    cards_to_check.append(new_cards)
+    cards_to_check = self.cards.copy()
+    cards_to_check.extend(new_cards)
     return is_valid_meld(cards_to_check)
 
   def add(self, new_cards):
-    cards_to_check = self.cards
-    cards_to_check.append(new_cards)
+    self.cards.extend(new_cards)
 
   def __str__(self):
     sorted_cards = sorted(self.cards, key=lambda card: card.rank)

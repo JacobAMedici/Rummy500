@@ -4,29 +4,10 @@ class Player(ABC):
   def __init__(self):
     self.played_cards = []
     self.hand = []
+    self.melds = []
     # Visible hand just clarifies which cards the other player knows if they are tracking their draws
     self.visible_hand = []
     self.score = 0
-
-  @abstractmethod
-  def have_player_draw(self, game):
-    pass
-
-  @abstractmethod
-  def have_player_act(self, game):
-    pass
-
-  @abstractmethod
-  def have_player_discard(self, game):
-    pass
-
-  # Play a card to an active set
-  def play_card_set(self, card):
-    pass
-
-  # Play a card to an active set
-  def play_card_run(self, card):
-    pass
 
   def append_player_card(self, card):
     self.hand.append(card)

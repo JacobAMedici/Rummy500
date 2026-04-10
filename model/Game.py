@@ -15,32 +15,58 @@ class Game:
       self.player2.append_player_card(self.deck.pop())
       self.player1.append_player_card(self.deck.pop())
     self.discard_pile.append(self.deck.pop())
+    self.player1.hand.sort(key=lambda x: (x.rank, x.suit.name))
+    self.player2.hand.sort(key=lambda x: (x.rank, x.suit.name))
 
   def discard(self, index):
     self.discard_pile.append(self.players_turn.hand.pop(index))
     self._change_turn()
 
+  def draw_from_deck(self):
+    try:
+      card = self.deck.pop()
+      self.players_turn.hand.append(card)
+      self.phase = 'act'
+      self.players_turn.hand.sort(key=lambda x: (x.rank, x.suit.name))
+    except Exception as e:
+      pass
+
+  def draw_from_discard(self, index):
+    try:
+      for main_index in range(len(self.discard_pile) - 1, index + 1, -1):
+        card = self.discard_pile.pop(main_index)
+        self.players_turn.hand.append(card)
+        self.players_turn.visible_hand.append(card)
+      # TODO: Ensure they play that round
+      self.phase = 'act'
+      self.players_turn.hand.sort(key=lambda x: (x.suit.name, x.rank))
+    except Exception as e:
+      pass
+
   def play_cards(self, cards, meld_type):
     if len(cards) == 1:
       melds = self.can_play_cards(cards)
-      meld = melds[0]
-      meld.add(cards)
-      self.players_turn.hand.append(card for card in cards)
       for meld in melds:
         if meld.meld_type == meld_type:
-          meld.add(meld)
+          meld.add(cards)
+          for card in cards:
+            self.players_turn.hand.remove(card)
     elif len(cards) == 2:
       melds = self.can_play_cards(cards)
       meld = melds[0]
       meld.add(cards)
-      self.players_turn.hand.append(card for card in cards)
+      for card in cards:
+        self.players_turn.hand.remove(card)
     else:
       try:
         possible_meld = Meld(cards)
         self.melds.append(possible_meld)
-        self.players_turn.hand.append(card for card in cards)
+        for card in cards:
+          self.players_turn.hand.remove(card)
       except Exception as e:
         print(e)
+    for card in cards:
+      self.players_turn.played_cards.append(card)
 
   def _change_turn(self):
     if self.players_turn == self.player1:
@@ -61,12 +87,13 @@ class Game:
     for card in self.discard_pile:
       if self.player_can_play_card(self.players_turn, card):
         legal_draws.append(card)
+    return legal_draws
 
   def player_can_play_card(self, player, card):
     for meld in self.melds:
       if meld.accepts(card):
         return True
-    potential_player_hand = player.hand
+    potential_player_hand = player.hand.copy()
     potential_player_hand.append(card)
     if len(get_all_possible_melds(potential_player_hand)) > 1:
       return True
@@ -76,5 +103,5 @@ class Game:
     possible_melds = []
     for meld in self.melds:
       if meld.accepts(cards):
-        return possible_melds.append(meld)
+        possible_melds.append(meld)
     return possible_melds
