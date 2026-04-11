@@ -1,7 +1,7 @@
+import copy
 import random
 
 from model import Helpers
-from model.Card import MeldType
 from model.Player import Player
 
 class AIPlayer(Player):
@@ -12,11 +12,11 @@ class AIPlayer(Player):
     indices.extend(game.get_legal_discard_draws())
 
     for draw in indices:
-      game_copy = game.deepcopy(game)
+      game_copy = copy.deepcopy(game)
       if draw == -1:
-        game_copy.draw_card()
+        game_copy.draw_from_deck()
       else:
-        game_copy.draw_card(draw)
+        game_copy.draw_from_discard(draw)
       index_result.append((draw, self.get_state_equity(game_copy)))
 
     return self.make_choice(index_result, epsilon, decay)
@@ -24,26 +24,39 @@ class AIPlayer(Player):
   def have_player_act(self, game, epsilon, decay):
     action_result = []
 
-    game_copy = game.deepcopy(game)
+    game_copy = copy.deepcopy(game)
     action_result.append((None, self.get_state_equity(game_copy)))
 
-    set_cards = [card for meld in self.melds if meld.meld_type == MeldType.SET for card in meld.cards]
-    run_cards = [card for meld in self.melds if meld.meld_type == MeldType.RUN for card in meld.cards]
-    for meld in Helpers.get_all_possible_melds(game.players_turn.hand, set_cards, run_cards)():
-        game_copy = game.deepcopy(game)
-        game_copy.play_meld(meld[0])
+    for meld in Helpers.get_all_possible_melds(game_copy.players_turn.hand, [], []):
+        game_copy = copy.deepcopy(game)
+        game_copy.player_must_use = None
+        game_copy.can_play_cards(meld[0])
         # TODO: Multiply this by the coefficient to disincentive playing early
         equity = self.get_state_equity(game_copy)
-        action_result.append(((meld[0], meld[1]), equity))
+        card_indices = [game_copy.players_turn.hand.index(card) for card in meld[0]]
+        action_result.append(((card_indices, meld[1]), equity))
 
-    for card in game.players_turn.hand:
-      possible_melds = game.can_play_cards([card])
+    for card_index in range(len(game.players_turn.hand)):
+      possible_melds = game.can_play_cards([game.players_turn.hand[card_index]])
       for meld in possible_melds:
-        game_copy = game.deepcopy(game)
-        game_copy.play_cards([card], meld.meld_type)
+        game_copy = copy.deepcopy(game)
+        game_copy.player_must_use = None
+        game_copy.play_cards([card_index], meld.meld_type)
         # TODO: Multiply this by the coefficient to disincentive playing early
         equity = self.get_state_equity(game_copy)
-        action_result.append((([card]), equity))
+        action_result.append((([card_index], meld.meld_type), equity))
+
+    if game.player_must_use:
+      valid_melds = []
+      for action, equity in action_result:
+        if action is not None:
+          cards_in_action = [game.players_turn.hand[i] for i in action[0]]
+          if game.player_must_use in cards_in_action:
+            valid_melds.append((action, equity))
+      if valid_melds:
+        # TODO: This is the last known remaining bug
+        return max(valid_melds, key=lambda x: x[1])[0]
+      return None
 
     return self.make_choice(action_result, epsilon, decay)
 
@@ -51,7 +64,7 @@ class AIPlayer(Player):
     index_result = []
 
     for discard in range(len(game.players_turn.hand)):
-      game_copy = game.deepcopy(game)
+      game_copy = copy.deepcopy(game)
       game_copy.discard(discard)
       index_result.append((discard, self.get_state_equity(game_copy)))
 
@@ -66,7 +79,7 @@ class AIPlayer(Player):
 
     choice = random.choices(index_result, weights=weights)[0]
 
-    return choice
+    return choice[0]
 
   def get_state_equity(self, game):
     melded_value = self.get_melded_value(game)

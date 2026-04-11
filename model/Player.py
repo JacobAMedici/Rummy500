@@ -9,6 +9,12 @@ class Player(ABC):
     self.visible_hand = []
     self.score = 0
 
+  def new_game(self):
+    self.played_cards = []
+    self.hand = []
+    self.melds = []
+    self.visible_hand = []
+
   def append_player_card(self, card):
     self.hand.append(card)
 

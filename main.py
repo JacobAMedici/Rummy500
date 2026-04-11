@@ -13,7 +13,7 @@ MODES = {
 def run_game(player1_type, player2_type):
   player1 = player1_type()
   player2 = player2_type()
-  needs_flask = not isinstance(player1, AIPlayer) and not isinstance(player2, AIPlayer)
+  needs_flask = not isinstance(player1, AIPlayer) or not isinstance(player2, AIPlayer)
 
   if needs_flask:
     app = create_app(player1, player2)

@@ -1,9 +1,9 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for
 
+from model import Helpers
 from model.AIPlayer import AIPlayer
-from model.Card import Meld, MeldType
+from model.Card import MeldType
 from model.Game import Game
-from model.Helpers import tally_scores
 
 def create_app(player1, player2):
   app = Flask(__name__, template_folder='../view/templates')
@@ -12,8 +12,9 @@ def create_app(player1, player2):
   @app.route('/')
   def index():
     if isinstance(game.players_turn, AIPlayer):
-      handle_AI_turn()
-    return render_template('index.html', game=game)
+      Helpers.handle_AI_turn(game)
+      handle_game_over_check()
+    return render_template('index2.html', game=game)
 
   @app.route('/draw', methods=['POST'])
   def draw():
@@ -22,7 +23,10 @@ def create_app(player1, player2):
     if source == 'deck':
       game.draw_from_deck()
     elif source == 'discard':
-      game.draw_from_discard(int(index))
+      try:
+        game.draw_from_discard(int(index))
+      except Exception as e:
+        pass
     return redirect(url_for('index'))
 
   @app.route('/meld', methods=['POST'])
@@ -37,22 +41,24 @@ def create_app(player1, player2):
 
     input_indices = request.form.get('index')
     indices = [int(index) for index in input_indices.split(" ")]
-    cards = [game.players_turn.hand[index] for index in indices]
     try:
-      game.play_cards(cards, meld_type)
+      game.play_cards(indices, meld_type)
     except Exception as e:
       pass
     return redirect(url_for('index'))
 
   @app.route('/done_acting', methods=['POST'])
   def done_acting():
-    game.phase = 'discard'
+    game.done_acting()
     return redirect(url_for('index'))
 
   @app.route('/discard', methods=['POST'])
   def discard():
-    index = request.form.get('index')
-    game.discard(int(index))
+    try:
+      index = request.form.get('index')
+      game.discard(int(index))
+    except Exception as e:
+      pass
     return handle_game_over_check()
 
   @app.route('/winner', methods=['POST'])
@@ -68,32 +74,11 @@ def create_app(player1, player2):
     # https://www.w3schools.com/python/ref_keyword_nonlocal.asp
     nonlocal game
     if game.check_round_over():
+      player1.new_game()
+      player2.new_game()
       game = Game(player1, player2)
-      if player1.score > 500 or player2.score > 500:
+      if player1.score >= 500 or player2.score >= 500:
         return redirect(url_for('winner'))
     return redirect(url_for('index'))
-
-  def handle_AI_turn():
-    nonlocal game
-    draw_index = game.players_turn.have_player_draw(game, 0.9, 0.5)
-    while True:
-      if draw_index == -1:
-        if game.draw_from_deck():
-          break
-      else:
-        if game.draw_from_discard(draw_index):
-          break
-
-    while True:
-      action = game.players_turn.have_player_act()
-      if not action:
-        break
-      else:
-        game.play_cards(action[0], action[1])
-
-    while True:
-      discard_index = game.players_turn.have_player_discard(game, 0.9, 0.5)
-      if game.discard(discard_index):
-        break
 
   return app

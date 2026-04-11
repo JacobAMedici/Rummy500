@@ -1,3 +1,5 @@
+import copy
+
 from model.Helpers import tally_scores, get_all_possible_melds
 from model.Card import *
 
@@ -10,7 +12,7 @@ class Game:
     self.deck.shuffle()
     self.discard_pile = []
     self.players_turn = player1
-    self.phase = 'draw'  # phases: draw, act, discard
+    self.phase = 'draw'
     for cardNum in range(1, 14):
       self.player2.append_player_card(self.deck.pop())
       self.player1.append_player_card(self.deck.pop())
@@ -35,23 +37,36 @@ class Game:
       self.players_turn.hand.sort(key=lambda x: (x.rank, x.suit.name))
       return True
     except Exception as e:
+      print(e)
       return False
 
   def draw_from_discard(self, index):
     try:
-      for main_index in range(len(self.discard_pile) - 1, index + 1, -1):
+      if index not in self.get_legal_discard_draws():
+        return False
+      for main_index in range(len(self.discard_pile) - 1, index - 1, -1):
         card = self.discard_pile.pop(main_index)
         self.players_turn.hand.append(card)
         self.players_turn.visible_hand.append(card)
-      self.player_must_use = self.players_turn.hand[-1]
       self.phase = 'act'
+      self.player_must_use = self.players_turn.hand[-1]
       self.players_turn.hand.sort(key=lambda x: (x.suit.name, x.rank))
       return True
     except Exception as e:
+      print(e)
       return False
 
-  def play_cards(self, cards, meld_type):
-    if self.player_must_use and not cards.contains(self.player_must_use):
+  def done_acting(self):
+    if self.player_must_use is not None:
+      self.phase = 'act'
+      return False
+    else:
+      self.phase = 'discard'
+      return True
+
+  def play_cards(self, card_indices, meld_type):
+    cards = [self.players_turn.hand[index] for index in card_indices]
+    if self.player_must_use and not self.player_must_use in cards:
       raise ValueError("You must use the card you drew")
     if len(cards) >= len(self.players_turn.hand):
       raise ValueError("You must use the card you drew")
@@ -96,20 +111,25 @@ class Game:
 
   def get_legal_discard_draws(self):
     legal_draws = []
-    for card in self.discard_pile:
-      if self.player_can_play_card(self.players_turn, card):
-        legal_draws.append(card)
+    player = copy.deepcopy(self.players_turn)
+    for main_index in range(len(self.discard_pile) - 1, -1, -1):
+      if self.player_can_play_card(player, self.discard_pile[main_index]):
+        legal_draws.append(main_index)
+      player.hand.append(self.discard_pile[main_index])
+
     return legal_draws
 
   def player_can_play_card(self, player, card):
     for meld in self.melds:
-      if meld.accepts(card):
+      if meld.accepts([card]):
         return True
     potential_player_hand = player.hand.copy()
     potential_player_hand.append(card)
     set_cards = [card for meld in self.melds if meld.meld_type == MeldType.SET for card in meld.cards]
     run_cards = [card for meld in self.melds if meld.meld_type == MeldType.RUN for card in meld.cards]
-    if len(get_all_possible_melds(potential_player_hand, set_cards, run_cards)) > 1:
+    all_melds = get_all_possible_melds(potential_player_hand, set_cards, run_cards)
+    all_melds_with_card = [meld for meld in all_melds if card in meld[0]]
+    if len(all_melds_with_card) >= 1:
       return True
     else:
       return False

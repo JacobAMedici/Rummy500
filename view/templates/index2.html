@@ -1,0 +1,892 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rummy 500</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Design Tokens ───────────────────────────────────────────── */
+    :root {
+      --felt-dark:     #0d2818;
+      --gold:          #c8a84b;
+      --gold-light:    #eacc70;
+      --gold-dim:      #a07d30;
+      --red:           #c0392b;
+      --red-bright:    #e74c3c;
+      --card-bg:       #fefcf5;
+      --card-shadow:   rgba(0,0,0,0.55);
+      --text-main:     #f0e8d2;
+      --text-bright:   #ffffff;
+      --text-muted:    #b0a070;
+      --border-gold:   rgba(200,168,75,0.38);
+      --panel-bg:      rgba(8,28,16,0.92);
+      --radius-card:   8px;
+      --font-display:  'Cinzel', serif;
+      --font-body:     'Crimson Pro', serif;
+
+      /* Player meld bubble colours */
+      --p1-meld-border: #e74c3c;
+      --p2-meld-border: #3498db;
+
+      /* Selection glow */
+      --select-glow:   #f0c030;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; }
+
+    body {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--felt-dark);
+      background-image:
+        radial-gradient(ellipse at 25% 18%, rgba(26,80,46,0.7) 0%, transparent 58%),
+        radial-gradient(ellipse at 75% 82%, rgba(26,80,46,0.6) 0%, transparent 52%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+      font-family: var(--font-body);
+      color: var(--text-main);
+      overflow: hidden;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    #header {
+      text-align: center;
+      padding: 10px 24px 9px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.65), transparent);
+      border-bottom: 1px solid var(--border-gold);
+      flex-shrink: 0;
+    }
+
+    #header h1 {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      letter-spacing: 0.28em;
+      color: var(--gold);
+      text-shadow: 0 0 30px rgba(200,168,75,0.6);
+    }
+
+    #header h1 span { color: var(--gold-light); }
+
+    /* ── Two-panel layout ────────────────────────────────────────── */
+    #players {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .player-panel {
+      flex: 1;
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold-dim) transparent;
+    }
+
+    .player-panel::-webkit-scrollbar { width: 5px; }
+    .player-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+    #player1-panel { border-right: 1px solid var(--border-gold); }
+
+    /* ── Player header ───────────────────────────────────────────── */
+    .player-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 11px;
+      border-bottom: 1px solid var(--border-gold);
+    }
+
+    .player-badge {
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      padding: 5px 14px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    #player1-panel .player-badge {
+      background: rgba(192,57,43,0.22);
+      color: #ff7070;
+      border: 1px solid rgba(231,76,60,0.45);
+    }
+
+    #player2-panel .player-badge {
+      background: rgba(52,152,219,0.18);
+      color: #6ac8f8;
+      border: 1px solid rgba(52,152,219,0.42);
+    }
+
+    .player-score {
+      margin-left: auto;
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+    }
+
+    .player-score .score-val {
+      font-size: 1.25rem;
+      color: var(--gold-light);
+    }
+
+    /* ── Info panel ──────────────────────────────────────────────── */
+    .game-info-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-gold);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 1.05rem;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(200,168,75,0.1);
+    }
+
+    .info-row:last-child { border-bottom: none; }
+
+    .info-label {
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      color: var(--gold-dim);
+      min-width: 82px;
+      text-transform: uppercase;
+      padding-top: 3px;
+    }
+
+    .info-value {
+      color: var(--text-bright);
+      font-size: 1.05rem;
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .pile-count {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      color: var(--gold-light);
+    }
+
+    /* Inline card chip */
+    .inline-card {
+      display: inline-flex;
+      align-items: center;
+      background: var(--card-bg);
+      font-size: 0.92rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin: 2px;
+      box-shadow: 1px 2px 5px var(--card-shadow);
+      vertical-align: middle;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+    }
+
+    .inline-card.red-suit  { color: var(--red); }
+    .inline-card.black-suit { color: #111; }
+
+    .discard-chip {
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, outline 0.08s ease;
+      outline: 2.5px solid transparent;
+      outline-offset: 1px;
+    }
+
+    .discard-chip:hover {
+      transform: translateY(-3px);
+      box-shadow: 2px 5px 10px var(--card-shadow);
+    }
+
+    .discard-chip.selected {
+      outline-color: var(--select-glow);
+      box-shadow: 0 0 0 3px rgba(240,192,48,0.45);
+      transform: translateY(-3px);
+    }
+
+    /* ── Section heading ─────────────────────────────────────────── */
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 5px;
+      margin-top: 2px;
+    }
+
+    /* ── Hand wrapper & grid ─────────────────────────────────────── */
+    .hand-wrapper {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-gold);
+      border-radius: 10px;
+      padding: 12px 14px;
+      overflow-x: auto;
+    }
+
+    .hand-grid {
+      border-collapse: separate;
+      border-spacing: 3px 4px;
+    }
+
+    .hand-grid th {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      color: var(--gold-dim);
+      text-align: center;
+      padding: 0 2px 7px;
+      width: 3.4em;
+      min-width: 3.4em;
+    }
+
+    .hand-grid td {
+      text-align: center;
+      padding: 2px;
+      width: 3.4em;
+      min-width: 3.4em;
+    }
+
+    .hand-grid td.suit-label {
+      font-size: 1.2rem;
+      width: 1.9em;
+      min-width: 1.9em;
+      padding-right: 4px;
+    }
+
+    .hand-grid td.empty .empty-slot {
+      background: rgba(255,255,255,0.035);
+      border-radius: var(--radius-card);
+      height: 3.8em;
+      width: 100%;
+      display: block;
+    }
+
+    /* ── Playing Card ────────────────────────────────────────────── */
+    .card-cell {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      box-shadow: 1px 3px 8px var(--card-shadow);
+      cursor: pointer;
+      height: 3.8em;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.1;
+      border: 2.5px solid transparent;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.08s ease;
+      position: relative;
+      user-select: none;
+    }
+
+    .card-cell.red-suit  { color: var(--red); }
+    .card-cell.black-suit { color: #181818; }
+
+    .card-cell:hover {
+      transform: translateY(-5px) scale(1.1);
+      box-shadow: 2px 8px 18px var(--card-shadow);
+      z-index: 10;
+    }
+
+    /* Selected */
+    .card-cell.selected {
+      border-color: var(--select-glow);
+      box-shadow: 0 0 0 3px rgba(240,192,48,0.55), 2px 8px 16px var(--card-shadow);
+      transform: translateY(-6px);
+      z-index: 20;
+    }
+
+    /* Melded cards in the melds section */
+    .inline-card.meld-p1 { outline: 3px solid var(--p1-meld-border); outline-offset: 1px; border-radius: 4px; }
+    .inline-card.meld-p2 { outline: 3px solid var(--p2-meld-border); outline-offset: 1px; border-radius: 4px; }
+
+    .card-rank {
+      font-size: 0.95rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .card-suit-sym {
+      font-size: 0.82rem;
+      line-height: 1;
+    }
+
+    /* ── Hidden hand (card backs) ────────────────────────────────── */
+    .hidden-hand {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .card-back {
+      width: 2.6em;
+      height: 3.8em;
+      border-radius: var(--radius-card);
+      background: linear-gradient(140deg, #1a3f64 0%, #0b2035 50%, #1a3f64 100%);
+      border: 2px solid rgba(200,168,75,0.55);
+      box-shadow: 1px 3px 7px var(--card-shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: rgba(200,168,75,0.4);
+    }
+
+    /* ── Meld group chips ────────────────────────────────────────── */
+    .melds-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .meld-group {
+      display: flex;
+      gap: 2px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 8px;
+      padding: 5px 7px;
+    }
+
+    /* ── Action panel (sticky bottom) ───────────────────────────── */
+    .action-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-gold);
+      border-radius: 10px;
+      padding: 14px 18px 16px;
+    }
+
+    .turn-divider {
+      border: none;
+      border-top: 1px solid var(--border-gold);
+      margin: 0 0 13px;
+    }
+
+    .phase-label {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 8px;
+    }
+
+    .selection-hint {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      min-height: 1.5em;
+      font-style: italic;
+      transition: color 0.2s;
+    }
+
+    .selection-hint.has-selection {
+      color: var(--gold-light);
+      font-style: normal;
+    }
+
+    .waiting-msg {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 10px;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-felt {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-felt:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-primary-gold {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 60%, var(--gold) 100%);
+      color: #180f00;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(200,168,75,0.4);
+    }
+
+    .btn-primary-gold:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 18px rgba(200,168,75,0.58);
+    }
+
+    .btn-secondary-felt {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-bright);
+      border: 1px solid var(--border-gold);
+    }
+
+    .btn-secondary-felt:hover {
+      background: rgba(200,168,75,0.18);
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+
+    .btn-danger-felt {
+      background: rgba(192,57,43,0.22);
+      color: #ff8080;
+      border: 1px solid rgba(231,76,60,0.48);
+    }
+
+    .btn-danger-felt:hover {
+      background: rgba(192,57,43,0.42);
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="header">
+  <h1>♣ RUMMY <span>500</span> ♠</h1>
+</div>
+
+{# ── Jinja helpers ──────────────────────────────────────────────── #}
+
+{% macro inline_card(c, clickable=false, card_idx=0, pid='', owner_cls='') %}
+{% set sym_map = {'Clubs': '♣', 'Diamonds': '♦', 'Hearts': '♥', 'Spades': '♠'} %}
+{% set rank_map = {11: 'J', 12: 'Q', 13: 'K', 14: 'A'} %}
+{% set is_red = c.suit.value in ['Hearts', 'Diamonds'] %}
+<span class="inline-card {{ 'red-suit' if is_red else 'black-suit' }} {{ 'discard-chip' if clickable else '' }} {{ owner_cls }}"
+      {% if clickable %}data-index="{{ card_idx }}" data-pid="{{ pid }}" onclick="discardChipClicked(this)"{% endif %}>
+  {{ rank_map.get(c.rank, c.rank) }}{{ sym_map.get(c.suit.value,'?') }}
+</span>
+{% endmacro %}
+
+{# ── hand_grid: same signature as original ─────────────────────── #}
+{% macro hand_grid(hand) %}
+{% set suits = [('♣','Clubs'),('♦','Diamonds'),('♥','Hearts'),('♠','Spades')] %}
+{% set rank_vals = [2,3,4,5,6,7,8,9,10,11,12,13,14] %}
+{% set rank_labels = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'] %}
+{% set rmap = {11:'J',12:'Q',13:'K',14:'A'} %}
+{% set smap = {'Clubs':'♣','Diamonds':'♦','Hearts':'♥','Spades':'♠'} %}
+<table class="hand-grid">
+  <thead>
+    <tr>
+      <th style="width:1.9em"></th>
+      {% for lbl in rank_labels %}<th>{{ lbl }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for suit_sym, suit_name in suits %}
+    {% set is_red = suit_name in ['Hearts','Diamonds'] %}
+    <tr>
+      <td class="suit-label {{ 'red-suit' if is_red else 'black-suit' }}"><strong>{{ suit_sym }}</strong></td>
+      {% for rv in rank_vals %}
+        {# find this card in hand #}
+        {% set ns = namespace(hand_idx=-1) %}
+        {% for card in hand %}
+          {% if card.suit.value == suit_name and card.rank == rv %}
+            {% set ns.hand_idx = loop.index0 %}
+          {% endif %}
+        {% endfor %}
+
+        {% if ns.hand_idx >= 0 %}
+          <td>
+            <div class="card-cell {{ 'red-suit' if is_red else 'black-suit' }}"
+                 data-index="{{ ns.hand_idx }}"
+                 onclick="cardClicked(this)">
+              <span class="card-rank">{{ rmap.get(rv, rv) }}</span>
+              <span class="card-suit-sym">{{ suit_sym }}</span>
+            </div>
+          </td>
+        {% else %}
+          <td class="empty"><div class="empty-slot"></div></td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{# ── player_display: same signature as original ────────────────── #}
+{% macro player_display(visible_player, visible_label, hidden_player, hidden_label) %}
+<div class="game-info-panel">
+  <div class="info-row">
+    <span class="info-label">Deck</span>
+    <span class="info-value"><span class="pile-count">{{ game.deck | length }}</span> cards remaining</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Discards</span>
+    <span class="info-value" id="discard-pile-{{ 'p1' if visible_player == game.player1 else 'p2' }}">
+      {% for c in game.discard_pile %}
+        {{ inline_card(c,
+             clickable=(game.phase == 'draw' and game.players_turn == visible_player),
+             card_idx=loop.index0,
+             pid=('p1' if visible_player == game.player1 else 'p2')) }}
+      {% endfor %}
+      {% if game.discard_pile | length == 0 %}<em style="color:var(--text-muted)">Empty</em>{% endif %}
+    </span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Melds</span>
+    <span class="info-value">
+      {% if game.melds | length > 0 %}
+      <div class="melds-row">
+        {% for meld in game.melds %}
+        <div class="meld-group">
+          {% for c in meld.cards %}
+            {% set ns_c = namespace(owner_cls='') %}
+            {% for pc in game.player1.played_cards %}
+              {% if pc == c %}{% set ns_c.owner_cls = 'meld-p1' %}{% endif %}
+            {% endfor %}
+            {% for pc in game.player2.played_cards %}
+              {% if pc == c %}{% set ns_c.owner_cls = 'meld-p2' %}{% endif %}
+            {% endfor %}
+            {{ inline_card(c, owner_cls=ns_c.owner_cls) }}
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <em style="color:var(--text-muted)">None yet</em>
+      {% endif %}
+    </span>
+  </div>
+</div>
+
+<p class="section-heading">{{ visible_label }}'s Hand</p>
+<div class="hand-wrapper" id="hand-{{ visible_label | replace(' ','') | lower }}">
+  {{ hand_grid(visible_player.hand) }}
+</div>
+
+<p class="section-heading">{{ hidden_label }}'s Hand</p>
+<div class="hand-wrapper">
+  <div class="hidden-hand">
+    {% for card in hidden_player.hand %}<div class="card-back">✦</div>{% endfor %}
+    {% if hidden_player.hand | length == 0 %}<em style="color:var(--text-muted)">No cards</em>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{# ── player_choice: same signature as original ─────────────────── #}
+{% macro player_choice(current_player, other_player) %}
+{% set pid = 'p1' if current_player == game.player1 else 'p2' %}
+<div class="action-panel" id="action-{{ pid }}">
+  <hr class="turn-divider">
+
+  {% if game.players_turn == current_player %}
+
+    {# DRAW #}
+    {% if game.phase == 'draw' %}
+    <p class="phase-label">Phase — Draw</p>
+    <div class="selection-hint" id="hint-{{ pid }}">Select a card to draw it from the discard pile, or draw from deck.</div>
+    <div class="action-buttons">
+      <form action="/draw" method="POST" id="form-draw-discard-{{ pid }}" onsubmit="return fillIndex('{{ pid }}','discard-idx-{{ pid }}')">
+        <input type="hidden" name="index" id="discard-idx-{{ pid }}" value="">
+        <button type="submit" name="source" value="discard"
+                class="btn-felt btn-secondary-felt"
+                id="btn-draw-discard-{{ pid }}" disabled>
+          Draw from Discard
+        </button>
+      </form>
+      <form action="/draw" method="POST">
+        <button type="submit" name="source" value="deck" class="btn-felt btn-primary-gold">Draw from Deck</button>
+      </form>
+    </div>
+
+    {# ACT #}
+    {% elif game.phase == 'act' %}
+    <p class="phase-label">Phase — Play Melds</p>
+    <div class="selection-hint" id="hint-{{ pid }}">Select 2 or more cards to meld, or finish your turn.</div>
+    <div class="action-buttons">
+      <form action="/meld" method="POST" id="form-meld-{{ pid }}">
+        <input type="hidden" name="index" id="meld-idx-{{ pid }}" value="">
+        <input type="hidden" name="source" id="meld-type-{{ pid }}" value="">
+        <button type="button" class="btn-felt btn-secondary-felt"
+                id="btn-meld-{{ pid }}" disabled
+                onclick="submitMeld('{{ pid }}')">
+          Play Meld
+        </button>
+        <button type="button" class="btn-felt btn-secondary-felt"
+                id="btn-set-{{ pid }}" style="display:none"
+                onclick="submitMeld('{{ pid }}', 'set')">
+          Add to Set
+        </button>
+        <button type="button" class="btn-felt btn-secondary-felt"
+                id="btn-run-{{ pid }}" style="display:none"
+                onclick="submitMeld('{{ pid }}', 'run')">
+          Add to Run
+        </button>
+      </form>
+      <form action="/done_acting" method="POST">
+        <button type="submit" class="btn-felt btn-primary-gold">Finish Turn →</button>
+      </form>
+    </div>
+
+    {# DISCARD #}
+    {% elif game.phase == 'discard' %}
+    <p class="phase-label">Phase — Discard</p>
+    <div class="selection-hint" id="hint-{{ pid }}">Click exactly one card to discard.</div>
+    <div class="action-buttons">
+      <form action="/discard" method="POST" id="form-discard-{{ pid }}" onsubmit="return fillIndex('{{ pid }}','discard-card-idx-{{ pid }}')">
+        <input type="hidden" name="index" id="discard-card-idx-{{ pid }}" value="">
+        <button type="submit"
+                class="btn-felt btn-danger-felt"
+                id="btn-discard-{{ pid }}" disabled>
+          Discard Selected Card
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+  {% else %}
+  <div class="waiting-msg">⟳ Waiting for opponent…</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ── Page layout ──────────────────────────────────────────────── #}
+<div id="players">
+
+  <div class="player-panel" id="player1-panel">
+    <div class="player-header">
+      <span class="player-badge">Player 1</span>
+      <span class="player-score">Score <span class="score-val">{{ game.player1.score }}</span></span>
+    </div>
+    {{ player_display(game.player1, 'Player 1', game.player2, 'Player 2') }}
+    {{ player_choice(game.player1, game.player2) }}
+  </div>
+
+  <div class="player-panel" id="player2-panel">
+    <div class="player-header">
+      <span class="player-badge">Player 2</span>
+      <span class="player-score">Score <span class="score-val">{{ game.player2.score }}</span></span>
+    </div>
+    {{ player_display(game.player2, 'Player 2', game.player1, 'Player 1') }}
+    {{ player_choice(game.player2, game.player1) }}
+  </div>
+
+</div>
+
+{# ── JavaScript ───────────────────────────────────────────────── #}
+<script>
+// ── State ──────────────────────────────────────────────────────────
+// Each panel tracks its own selection set, keyed by panel id (p1 / p2)
+const selections = { p1: new Set(), p2: new Set() };
+const discardSelections = { p1: new Set(), p2: new Set() };
+
+// Phase & turn injected from Jinja
+const PHASE = "{{ game.phase }}";
+
+// Which action panels are active (i.e., whose turn it is)?
+// A panel is active if its action-panel div does NOT contain a waiting-msg.
+function isActive(pid) {
+  const el = document.getElementById(`action-${pid}`);
+  return el && !el.querySelector('.waiting-msg');
+}
+
+// ── Card click handler ─────────────────────────────────────────────
+// Each card cell is inside a hand-wrapper that lives inside a player panel.
+// We derive the panel id from the nearest .player-panel ancestor.
+function cardClicked(el) {
+  const panel = el.closest('.player-panel');
+  if (!panel) return;
+  const pid = panel.id === 'player1-panel' ? 'p1' : 'p2';
+
+  if (PHASE === 'draw') return;
+
+  // Only react in the active (current turn) panel
+  if (!isActive(pid)) return;
+
+  const idx = parseInt(el.dataset.index, 10);
+  const sel = selections[pid];
+
+  if (PHASE === 'discard' || PHASE === 'draw') {
+    // Single-select only
+    sel.has(idx) ? sel.clear() : (sel.clear(), sel.add(idx));
+  } else if (PHASE === 'act') {
+    // Multi-select toggle
+    sel.has(idx) ? sel.delete(idx) : sel.add(idx);
+  }
+
+  refreshPanel(pid);
+}
+
+// â”€â”€ Refresh all visuals & button states for a panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function refreshPanel(pid) {
+  const sel = selections[pid];
+  const count = sel.size;
+  const panelEl = document.getElementById(pid === 'p1' ? 'player1-panel' : 'player2-panel');
+  panelEl.querySelectorAll('.card-cell').forEach(el => {
+    el.classList.toggle('selected', sel.has(parseInt(el.dataset.index, 10)));
+  });
+  const hint = document.getElementById(`hint-${pid}`);
+  if (PHASE === 'draw') {
+    const dsel = discardSelections[pid];
+    const dcount = dsel.size;
+    const btn = document.getElementById(`btn-draw-discard-${pid}`);
+    if (btn) btn.disabled = dcount !== 1;
+    if (hint) {
+      hint.textContent = dcount === 1
+        ? `Discard #${[...dsel][0]} selected” click Draw from Discard, or draw from deck.`
+        : 'Click a card in the discard pile to pick it up, or draw from deck.';
+      hint.className = 'selection-hint' + (dcount ? ' has-selection' : '');
+    }
+  } else if (PHASE === 'act') {
+    const btn    = document.getElementById(`btn-meld-${pid}`);
+    const btnSet = document.getElementById(`btn-set-${pid}`);
+    const btnRun = document.getElementById(`btn-run-${pid}`);
+    if (count >= 2) {
+      if (btn)    { btn.style.display = ''; btn.disabled = false; }
+      if (btnSet) btnSet.style.display = 'none';
+      if (btnRun) btnRun.style.display = 'none';
+      if (btn) {
+        const t = detectMeldType(pid);
+        btn.textContent = t === 'set' ? `Play Set (${count} cards)`
+                         : t === 'run' ? `Play Run (${count} cards)`
+                         : `Play Meld (${count} cards)`;
+      }
+    } else if (count === 1) {
+      if (btn)    btn.style.display = 'none';
+      if (btnSet) btnSet.style.display = '';
+      if (btnRun) btnRun.style.display = '';
+    } else {
+      if (btn)    { btn.style.display = ''; btn.disabled = true; btn.textContent = 'Play Meld'; }
+      if (btnSet) btnSet.style.display = 'none';
+      if (btnRun) btnRun.style.display = 'none';
+    }
+    if (hint) {
+      hint.textContent = count === 0 ? 'Select cards to meld, or finish your turn.'
+                       : count === 1 ? 'Select at least one more card, or add to an existing meld.'
+                       : `${count} cards selected” click Play Meld to confirm.`;
+      hint.className = 'selection-hint' + (count >= 1 ? ' has-selection' : '');
+    }
+  } else if (PHASE === 'discard') {
+    const btn = document.getElementById(`btn-discard-${pid}`);
+    if (btn) btn.disabled = count !== 1;
+    if (hint) {
+      hint.textContent = count === 1
+        ? `Card at index ${[...sel][0]} selected” click Discard to confirm.`
+        : 'Click exactly one card to discard.';
+      hint.className = 'selection-hint' + (count === 1 ? ' has-selection' : '');
+    }
+  }
+}
+
+// New: clicking a chip in the discard pile
+function discardChipClicked(el) {
+  const pid = el.dataset.pid;
+  if (!isActive(pid)) return;
+
+  const idx = parseInt(el.dataset.index, 10);
+  const sel = discardSelections[pid];
+
+  // Single-select toggle, same as card hand selection
+  sel.has(idx) ? sel.clear() : (sel.clear(), sel.add(idx));
+
+  // Highlight chips
+  document.querySelectorAll(`.discard-chip[data-pid="${pid}"]`).forEach(chip => {
+    chip.classList.toggle('selected', sel.has(parseInt(chip.dataset.index, 10)));
+  });
+
+  refreshPanel(pid);
+}
+
+// ── Detect meld type from card DOM data ───────────────────────────
+function detectMeldType(pid) {
+  const sel = selections[pid];
+  if (sel.size < 2) return null;
+
+  const panelEl = document.getElementById(pid === 'p1' ? 'player1-panel' : 'player2-panel');
+  const selectedEls = [...panelEl.querySelectorAll('.card-cell.selected')];
+
+  const cards = selectedEls.map(el => ({
+    rank: el.querySelector('.card-rank').textContent.trim(),
+    suit: el.querySelector('.card-suit-sym').textContent.trim()
+  }));
+
+  const allSameRank = cards.every(c => c.rank === cards[0].rank);
+  if (allSameRank) return 'set';
+
+  const allSameSuit = cards.every(c => c.suit === cards[0].suit);
+  if (allSameSuit) {
+    const order = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
+    const nums = cards.map(c => order[c.rank] || 0).sort((a,b) => a-b);
+    const consecutive = nums.every((n, i) => i === 0 || n === nums[i-1]+1);
+    if (consecutive) return 'run';
+  }
+
+  return null; // ambiguous
+}
+
+function clearSelections(pid) {
+    selections[pid].clear();
+    discardSelections[pid].clear();
+    refreshPanel(pid);
+  }
+
+// ── Submit meld — populate hidden inputs then submit ──────────────
+function submitMeld(pid, forcedType) {
+  const sel = selections[pid];
+  const indices = [...sel].sort((a,b) => a-b).join(' ');
+  document.getElementById(`meld-idx-${pid}`).value = indices;
+
+  const meldType = forcedType || detectMeldType(pid);
+  clearSelections(pid);
+  if (meldType) {
+    document.getElementById(`meld-type-${pid}`).value = meldType;
+    document.getElementById(`form-meld-${pid}`).submit();
+  } else {
+    const isSet = confirm('Meld type is ambiguous.\n\nOK → Set\nCancel → Run');
+    document.getElementById(`meld-type-${pid}`).value = isSet ? 'set' : 'run';
+    document.getElementById(`form-meld-${pid}`).submit();
+  }
+}
+
+// ── Fill a hidden index input on form submit (draw discard / discard) ──
+function fillIndex(pid, inputId) {
+  const isDiscardDraw = inputId.startsWith('discard-idx-');
+  const sel = isDiscardDraw ? discardSelections[pid] : selections[pid];
+  if (sel.size !== 1) return false;
+  document.getElementById(inputId).value = [...sel][0];
+  clearSelections(pid)
+  return true;
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  refreshPanel('p1');
+  refreshPanel('p2');
+  clearSelections('p1');
+  clearSelections('p2');
+});
+</script>
+
+</body>
+</html>

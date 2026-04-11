@@ -19,9 +19,10 @@ def tally_scores(player):
     Rank.ACE: 15
   }
 
-  for meld in player.played_cards:
-    for card in meld.cards:
-      score += rank_score[card]
+  for card in player.played_cards:
+    score += rank_score[card.rank]
+  for card in player.hand:
+    score -= rank_score[card.rank]
 
   player.score += score
 
@@ -33,8 +34,7 @@ def get_all_possible_melds(unmelded_cards, set_cards, run_cards):
   for rank in Rank:
     cards_of_rank = [card for card in total_set_cards if card.rank == rank]
     if len(cards_of_rank) >= 3:
-      card_indices = [index for index, card in enumerate(total_set_cards) if card in cards_of_rank]
-      possible_melds.append((card_indices, MeldType.SET))
+      possible_melds.append((cards_of_rank, MeldType.SET))
 
   total_run_cards = unmelded_cards + run_cards
   for suit in Suit:
@@ -48,12 +48,43 @@ def get_all_possible_melds(unmelded_cards, set_cards, run_cards):
         card_array[card.rank - 1] = True
 
     for meld_size in range(13, 2, -1):
-      for period in range(14 - meld_size):
+      for period in range(15 - meld_size):
         window = card_array[period:period + meld_size]
         if all(window):
           possible_meld = []
-          for index in range(period, period + meld_size + 1):
-            possible_meld.append(index)
+          for card in suited_cards:
+            #TODO: Fix this :)
+            position = 0 if card.rank == Rank.ACE and period == 0 else (13 if card.rank == Rank.ACE else card.rank - 1)
+            if period <= position < period + meld_size:
+              possible_meld.append(card)
           possible_melds.append((possible_meld, MeldType.RUN))
 
   return possible_melds
+
+def handle_AI_turn(game):
+  while True:
+    draw_index = game.players_turn.have_player_draw(game, 0.9, 0.5)
+    if draw_index == -1:
+      if game.draw_from_deck():
+        break
+    else:
+      if game.draw_from_discard(draw_index):
+        break
+
+  while True:
+    action = game.players_turn.have_player_act(game, 0.9, 0.5)
+    if action is None:
+      game.done_acting()
+      if game.phase == 'discard':
+        break
+    else:
+      try:
+        game.play_cards(action[0], action[1])
+      except ValueError as e:
+        print(e)
+
+  while True:
+    discard_index = game.players_turn.have_player_discard(game, 0.9, 0.5)
+    if game.discard(discard_index):
+      break
+

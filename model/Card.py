@@ -57,6 +57,8 @@ class Card:
     return f"{rank_letters[self.rank]}{suit_symbols[self.suit]}"
 
   def __eq__(self, other):
+    if not isinstance(other, Card):
+      return False
     return self.rank == other.rank and self.suit == other.suit
 
   def __hash__(self):
@@ -85,6 +87,10 @@ def is_valid_meld(cards):
   if len(cards) < 3:
     return False, MeldType.INVALID
 
+  for card in cards:
+    if isinstance(card, int):
+      print(cards)
+
   if len({card.rank for card in cards}) == 1:
     return True, MeldType.SET
 
@@ -108,12 +114,11 @@ class Meld:
 
 
   def accepts(self, new_cards):
-    cards_to_check = self.cards.copy()
-    cards_to_check.extend(new_cards)
-    return is_valid_meld(cards_to_check)
+    return is_valid_meld(self.cards + new_cards)[0]
 
   def add(self, new_cards):
-    self.cards.extend(new_cards)
+    if is_valid_meld(self.cards + new_cards):
+      self.cards.extend(new_cards)
 
   def __str__(self):
     sorted_cards = sorted(self.cards, key=lambda card: card.rank)
