@@ -69,31 +69,44 @@ class Game:
     if self.player_must_use and not self.player_must_use in cards:
       raise ValueError("You must use the card you drew")
     if len(cards) >= len(self.players_turn.hand):
-      raise ValueError("You must use the card you drew")
+      raise ValueError("Not enough cards to discard")
+    success = False
     if len(cards) == 1:
       melds = self.can_play_cards(cards)
       for meld in melds:
         if meld.meld_type == meld_type:
           meld.add(cards)
-          for card in cards:
-            self.players_turn.hand.remove(card)
+          self.removed_played_cards(cards)
+          success = True
+          break
     elif len(cards) == 2:
       melds = self.can_play_cards(cards)
-      meld = melds[0]
-      meld.add(cards)
-      for card in cards:
-        self.players_turn.hand.remove(card)
+      if melds:
+        meld = melds[0]
+        meld.add(cards)
+        self.removed_played_cards(cards)
+        success = True
     else:
       try:
         possible_meld = Meld(cards)
         self.melds.append(possible_meld)
-        for card in cards:
-          self.players_turn.hand.remove(card)
+        self.removed_played_cards(cards)
+        success = True
       except Exception as e:
         print(e)
+    if success:
+      for card in cards:
+        self.players_turn.played_cards.append(card)
+      self.player_must_use = None
+
+  def removed_played_cards(self, cards):
     for card in cards:
-      self.players_turn.played_cards.append(card)
-    self.player_must_use = None
+      self.players_turn.hand.remove(card)
+      try:
+        card_index = self.players_turn.visible_hand.index(card)
+        self.players_turn.visible_hand.pop(card_index)
+      except ValueError or IndexError as e:
+        pass
 
   def _change_turn(self):
     if self.players_turn == self.player1:

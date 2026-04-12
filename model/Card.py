@@ -96,8 +96,10 @@ def is_valid_meld(cards):
 
   if len({card.suit for card in cards}) == 1:
     ranks = [card.rank for card in cards]
-    max_rank = max(ranks)
     min_rank = min(ranks)
+    if Rank.ACE in ranks and min_rank == Rank.TWO:
+      ranks.remove(Rank.ACE)
+    max_rank = max(ranks)
     if max_rank - min_rank == len(set(ranks)) - 1:
       return True, MeldType.RUN
 

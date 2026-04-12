@@ -29,20 +29,38 @@ class AIPlayer(Player):
 
     for meld in Helpers.get_all_possible_melds(game_copy.players_turn.hand, [], []):
         game_copy = copy.deepcopy(game)
-        game_copy.player_must_use = None
-        game_copy.can_play_cards(meld[0])
-        # TODO: Multiply this by the coefficient to disincentive playing early
-        equity = self.get_state_equity(game_copy)
         card_indices = [game_copy.players_turn.hand.index(card) for card in meld[0]]
+        game_copy.player_must_use = None
+        try:
+            game_copy.play_cards(card_indices, meld[1])
+        except (ValueError, Exception):
+            continue
+        equity = self.get_state_equity(game_copy)
         action_result.append(((card_indices, meld[1]), equity))
+
+    hand = game.players_turn.hand
+    for first_card_index in range(len(hand)):
+      for second_card_index in range(first_card_index + 1, len(hand)):
+        possible_melds = game.can_play_cards([hand[first_card_index], hand[second_card_index]])
+        for meld in possible_melds:
+          game_copy = copy.deepcopy(game)
+          game_copy.player_must_use = None
+          try:
+              game_copy.play_cards([first_card_index, second_card_index], meld.meld_type)
+          except (ValueError, Exception):
+              continue
+          equity = self.get_state_equity(game_copy)
+          action_result.append((([first_card_index, second_card_index], meld.meld_type), equity))
 
     for card_index in range(len(game.players_turn.hand)):
       possible_melds = game.can_play_cards([game.players_turn.hand[card_index]])
       for meld in possible_melds:
         game_copy = copy.deepcopy(game)
         game_copy.player_must_use = None
-        game_copy.play_cards([card_index], meld.meld_type)
-        # TODO: Multiply this by the coefficient to disincentive playing early
+        try:
+            game_copy.play_cards([card_index], meld.meld_type)
+        except (ValueError, Exception):
+            continue
         equity = self.get_state_equity(game_copy)
         action_result.append((([card_index], meld.meld_type), equity))
 
@@ -54,21 +72,28 @@ class AIPlayer(Player):
           if game.player_must_use in cards_in_action:
             valid_melds.append((action, equity))
       if valid_melds:
-        # TODO: This is the last known remaining bug
         return max(valid_melds, key=lambda x: x[1])[0]
       return None
 
     return self.make_choice(action_result, epsilon, decay)
 
   def have_player_discard(self, game, epsilon, decay):
-    index_result = []
+    unplayable_index_result = []
+    playable_index_result = []
 
     for discard in range(len(game.players_turn.hand)):
       game_copy = copy.deepcopy(game)
-      game_copy.discard(discard)
-      index_result.append((discard, self.get_state_equity(game_copy)))
+      if game.player_can_play_card(game_copy.players_turn, game_copy.players_turn.hand[discard]):
+        game_copy.discard(discard)
+        playable_index_result.append((discard, self.get_state_equity(game_copy)))
+      else:
+        game_copy.discard(discard)
+        unplayable_index_result.append((discard, self.get_state_equity(game_copy)))
 
-    return self.make_choice(index_result, epsilon, decay)
+    if len(unplayable_index_result) >= 1:
+      return self.make_choice(unplayable_index_result, epsilon, decay)
+    else:
+      return self.make_choice(playable_index_result, epsilon, decay)
 
   def make_choice(self, index_result, epsilon, decay):
     index_result.sort(key=lambda x: x[1], reverse=True)

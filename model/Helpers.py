@@ -67,6 +67,8 @@ def handle_AI_turn(game):
     if draw_index == -1:
       if game.draw_from_deck():
         break
+      else:
+        break
     else:
       if game.draw_from_discard(draw_index):
         break
@@ -74,14 +76,18 @@ def handle_AI_turn(game):
   while True:
     action = game.players_turn.have_player_act(game, 0.9, 0.5)
     if action is None:
-      game.done_acting()
+      if not game.done_acting():
+        continue
       if game.phase == 'discard':
         break
     else:
       try:
         game.play_cards(action[0], action[1])
       except ValueError as e:
-        print(e)
+        if str(e) == 'Not enough cards to discard':
+          game.player_must_use = None
+          game.done_acting()
+          break
 
   while True:
     discard_index = game.players_turn.have_player_discard(game, 0.9, 0.5)
