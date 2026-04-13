@@ -1,9 +1,6 @@
-import time
-
 from flask import Flask, render_template, request, redirect, url_for, make_response
 
-from model import Helpers
-from model.AIPlayer import AIPlayer
+from model.AdvancedAIPlayer import AIPlayer
 from model.Card import MeldType
 from model.Game import Game
 
@@ -14,13 +11,13 @@ def create_app(player1, player2):
   @app.route('/')
   def index():
     if isinstance(game.players_turn, AIPlayer):
-      Helpers.handle_AI_turn(game)
+      AIPlayer.handle_AI_turn(game)
       result = handle_game_over_check()
       if result.location == url_for('winner'):
         return result
-    response = make_response(render_template('index2.html', game=game))
+    response = make_response(render_template('index.html', game=game))
     if isinstance(game.players_turn, AIPlayer):
-      response.headers['Refresh'] = '0.5'
+      response.headers['Refresh'] = '1'
     return response
 
   @app.route('/draw', methods=['POST'])

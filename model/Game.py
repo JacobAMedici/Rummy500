@@ -106,7 +106,7 @@ class Game:
         card_index = self.players_turn.visible_hand.index(card)
         self.players_turn.visible_hand.pop(card_index)
       except ValueError or IndexError as e:
-        pass
+        continue
 
   def _change_turn(self):
     if self.players_turn == self.player1:
@@ -138,9 +138,7 @@ class Game:
         return True
     potential_player_hand = player.hand.copy()
     potential_player_hand.append(card)
-    set_cards = [card for meld in self.melds if meld.meld_type == MeldType.SET for card in meld.cards]
-    run_cards = [card for meld in self.melds if meld.meld_type == MeldType.RUN for card in meld.cards]
-    all_melds = get_all_possible_melds(potential_player_hand, set_cards, run_cards)
+    all_melds = get_all_possible_melds(potential_player_hand, [], [])
     all_melds_with_card = [meld for meld in all_melds if card in meld[0]]
     if len(all_melds_with_card) >= 1:
       return True
