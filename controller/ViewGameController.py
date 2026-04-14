@@ -73,12 +73,15 @@ def create_app(player1, player2):
 
   @app.route('/winner', methods=['GET'])
   def winner():
-    if game.player1.score > game.player2.score:
-      return render_template('winner.html', winner="Player 1 Wins")
-    elif game.player1.score < game.player2.score:
-      return render_template('winner.html', winner="Player 2 Wins")
+    player1_score = game.player1.score
+    player2_score = game.player2.score
+    if player1_score > player2_score:
+      result = "Player 1 Wins"
+    elif player1_score < player2_score:
+      result = "Player 2 Wins"
     else:
-      return render_template('winner.html', winner="Tie")
+      result = "Tie"
+    return render_template('winner.html', winner=result, p1_score=player1_score, p2_score=player2_score)
 
 
   def handle_game_over_check():

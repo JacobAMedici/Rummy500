@@ -20,9 +20,25 @@
     font-size: 10vw;
     letter-spacing: 0.05em;
   }
+
+  .scores {
+    margin-top: 1rem;
+    color: #ccc;
+    letter-spacing: 0.05em;
+  }
+
+  .scores span {
+    margin: 0 1.5rem;
+  }
 </style>
 </head>
 <body>
-  <h1>{{ winner }}</h1>
+  <div>
+    <h1>{{ winner }}</h1>
+    <div class="scores">
+      <span>Player 1: {{ p1_score }}</span>
+      <span>Player 2: {{ p2_score }}</span>
+    </div>
+  </div>
 </body>
 </html>
