@@ -35,6 +35,13 @@ def get_all_possible_melds(unmelded_cards, set_cards, run_cards):
     cards_of_rank = [card for card in total_set_cards if card.rank == rank]
     if len(cards_of_rank) >= 3:
       possible_melds.append((cards_of_rank, MeldType.SET))
+      if len(cards_of_rank) == 4:
+        for excluded_index in range(4):
+          three_card_meld = []
+          for card_index, card in enumerate(cards_of_rank):
+            if card_index != excluded_index:
+              three_card_meld.append(card)
+          possible_melds.append((three_card_meld, MeldType.SET))
 
   total_run_cards = unmelded_cards + run_cards
   for suit in Suit:

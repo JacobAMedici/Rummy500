@@ -3,25 +3,29 @@ from abc import abstractmethod
 from model.Player import Player
 
 class AIPlayer(Player):
+  def __init__(self, lamda = 1):
+    super().__init__()
+    self.lamda = lamda
+
   @abstractmethod
-  def have_player_draw(self, game, epsilon, decay):
+  def have_player_draw(self, game):
     pass
 
 
   @abstractmethod
-  def have_player_act(self, game, epsilon, decay):
+  def have_player_act(self, game):
     pass
 
 
   @abstractmethod
-  def have_player_discard(self, game, epsilon, decay):
+  def have_player_discard(self, game):
     pass
 
 
   @staticmethod
   def handle_AI_turn(game):
     while True:
-      draw_index = game.players_turn.have_player_draw(game, 0.9, 0.5)
+      draw_index = game.players_turn.have_player_draw(game)
       if draw_index == -1:
         game.draw_from_deck()
         break
@@ -30,7 +34,7 @@ class AIPlayer(Player):
           break
 
     while True:
-      action = game.players_turn.have_player_act(game, 0.9, 0.5)
+      action = game.players_turn.have_player_act(game)
       if action is None:
         if not game.done_acting():
           continue
@@ -46,6 +50,6 @@ class AIPlayer(Player):
             break
 
     while True:
-      discard_index = game.players_turn.have_player_discard(game, 0.9, 0.5)
+      discard_index = game.players_turn.have_player_discard(game)
       if game.discard(discard_index):
         break

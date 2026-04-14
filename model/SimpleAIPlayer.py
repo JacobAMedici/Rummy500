@@ -4,11 +4,11 @@ from model import Helpers
 from model.AIPlayer import AIPlayer
 
 class SimpleAIPlayer(AIPlayer):
-  def have_player_draw(self, game, epsilon, decay):
+  def have_player_draw(self, game):
     return -1
 
 
-  def have_player_act(self, game, epsilon, decay):
+  def have_player_act(self, game):
     actions = []
     actions.append(None)
 
@@ -23,5 +23,5 @@ class SimpleAIPlayer(AIPlayer):
     return random.choice(actions)
 
 
-  def have_player_discard(self, game, epsilon, decay):
+  def have_player_discard(self, game):
     return random.randint(0, len(game.players_turn.hand) - 1)

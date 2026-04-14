@@ -1,7 +1,6 @@
 import random
 from enum import IntEnum, Enum
 
-
 class Rank(IntEnum):
   TWO = 2
   THREE = 3

@@ -152,10 +152,12 @@ class Game:
     potential_player_hand = player.hand.copy()
     potential_player_hand.append(card)
     # This is added to ensure they don't play every card and don't have a discard left
-    if len(potential_player_hand) == 3:
+    if len(potential_player_hand) <= 3:
       return False
     all_melds = get_all_possible_melds(potential_player_hand, [], [])
     all_melds_with_card = [meld for meld in all_melds if card in meld[0]]
+    if all([len(all_melds_with_card) == len(potential_player_hand)]):
+      return False
     if len(all_melds_with_card) >= 1:
       return True
     else:

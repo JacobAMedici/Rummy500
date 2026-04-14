@@ -1,13 +1,11 @@
 import copy
 import random
 
-import numpy
-
 from model import Helpers
 from model.AIPlayer import AIPlayer
 
 class AdvancedAIPlayer(AIPlayer):
-  def have_player_draw(self, game, epsilon, decay):
+  def have_player_draw(self, game):
     index_result = []
 
     indices = [-1]
@@ -31,10 +29,10 @@ class AdvancedAIPlayer(AIPlayer):
         game_copy.draw_from_discard(draw)
       index_result.append((draw, self._get_state_equity(game_copy)))
 
-    return self._make_choice(index_result, epsilon, decay)
+    return self._make_choice(index_result)
 
 
-  def have_player_act(self, game, epsilon, decay):
+  def have_player_act(self, game):
     action_result = []
 
     game_copy = copy.deepcopy(game)
@@ -91,10 +89,10 @@ class AdvancedAIPlayer(AIPlayer):
         return max(valid_melds, key=lambda x: x[1])[0]
       return None
 
-    return self._make_choice(action_result, epsilon, decay)
+    return self._make_choice(action_result)
 
 
-  def have_player_discard(self, game, epsilon, decay):
+  def have_player_discard(self, game):
     unplayable_index_net_result = []
     playable_index_net_result = []
 
@@ -109,9 +107,9 @@ class AdvancedAIPlayer(AIPlayer):
         unplayable_index_net_result.append((discard, self._get_state_equity(game_copy) - self._estimate_opp_equity(game_copy, monte_carlo_rounds)))
 
     if unplayable_index_net_result:
-      return self._make_choice(unplayable_index_net_result, epsilon, decay)
+      return self._make_choice(unplayable_index_net_result)
     else:
-      return self._make_choice(playable_index_net_result, epsilon, decay)
+      return self._make_choice(playable_index_net_result)
 
 
   @staticmethod
@@ -123,13 +121,12 @@ class AdvancedAIPlayer(AIPlayer):
     return possible_cards[:number_hidden_cards]
 
 
-  @staticmethod
-  def _make_choice(index_result, epsilon, decay):
+  def _make_choice(self, index_result):
     index_result.sort(key=lambda x: x[1], reverse=True)
 
     weights = []
     for weight in range(len(index_result)):
-      weights.append(epsilon * decay ** weight)
+      weights.append(self.lamda ** weight)
 
     choice = random.choices(index_result, weights=weights)[0]
 
@@ -234,6 +231,8 @@ class AdvancedAIPlayer(AIPlayer):
 
   def _estimate_opp_equity(self, game, monte_carlo_rounds):
     equity = []
+    # TODO: Revert
+    monte_carlo_rounds = 100
     for _ in range(monte_carlo_rounds):
       game_copy = copy.deepcopy(game)
       target_hand_length = len(game_copy.players_turn.hand)
@@ -243,4 +242,4 @@ class AdvancedAIPlayer(AIPlayer):
       new_hand.extend(game_copy.players_turn.visible_hand)
       game_copy.players_turn.hand = new_hand
       equity.append(self._get_state_equity(game_copy))
-    return numpy.average(equity)
+    return sum(equity) / len(equity)
