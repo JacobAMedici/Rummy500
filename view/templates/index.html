@@ -9,30 +9,20 @@
     .hand-grid { border-collapse: collapse; }
     .hand-grid th, .hand-grid td {
       width: 3em;
-      min-width: 3em;
       text-align: center;
-      padding: 1px 4px;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
     }
 
     #players {
       display: flex;
-      flex: 1;
-      overflow: hidden;
     }
 
     .player-panel {
       flex: 1;
-      padding: 20px;
+      padding: 20px 20px 347px;
       display: flex;
       flex-direction: column;
+      background-color: #b0c4d8;
       gap: 12px;
-      overflow-y: auto;
     }
 
     #player1-panel { border-right: 2px solid #444; }
@@ -43,8 +33,8 @@
       border-bottom: 1px solid #444;
     }
 
-    #player1-panel h2 { color: #f44747; }
-    #player2-panel h2 { color: #4ec9b0; }
+    #player1-panel h2 { color: #c81f1f; }
+    #player2-panel h2 { color: #0fb595; }
 
     .player-game-display-panel {
     background: #1e1e1e;
@@ -52,25 +42,14 @@
     font-family: 'Courier New', monospace;
     padding: 20px;
     border-radius: 8px;
-    overflow-y: auto;
     }
 
     .player-game-display-panel h3 {
-        color: #4ecdc4;
-        margin-bottom: 5px;
-        margin-top: 10px;
-        border-bottom: 1px solid #333;
-        padding-bottom: 4px;
-    }
-
-    .player-game-display-panel br {
-        line-height: 2;
-    }
-
-    .turn-divider {
-      border: none;
-      border-top: 1px solid #444;
-      margin: 8px 0 12px;
+      color: #4ecdc4;
+      margin-bottom: 10px;
+      margin-top: 10px;
+      border-bottom: 4px solid #555;
+      padding-bottom: 10px;
     }
 
     .player-choice-panel {
@@ -81,35 +60,41 @@
       letter-spacing: 0.05em;
     }
 
+    .waiting-label {
+      color: #1a2a3a;
+    }
+
   </style>
 
+  <!--  https://getbootstrap.com/ -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 
 <body>
+  <!--  I didn't know how to use macros in Jinja: https://jinja.palletsprojects.com/en/stable/templates/  -->
   {% macro hand_grid(hand) %}
   {% set suits = [('♣','Clubs'),('♦','Diamonds'),('♥','Hearts'),('♠','Spades')] %}
-  {% set rank_vals = [2,3,4,5,6,7,8,9,10,11,12,13,14] %}
+  {% set rank_values = [2,3,4,5,6,7,8,9,10,11,12,13,14] %}
   <table class="hand-grid">
     <thead><tr>
       <th></th>
-      {% for lbl in ['2','3','4','5','6','7','8','9','T','J','Q','K','A'] %}
-      <th>{{ lbl }}</th>
+      {% for column in ['2','3','4','5','6','7','8','9','T','J','Q','K','A'] %}
+      <th>{{ column }}</th>
       {% endfor %}
     </tr></thead>
     <tbody>
       {% for suit_sym, suit_name in suits %}
       <tr>
         <td><strong>{{ suit_sym }}</strong></td>
-        {% for rv in rank_vals %}
-          {% set ns = namespace(idx=-1) %}
+        {% for rank_value in rank_values %}
+          {% set name_space = namespace(name_space_index=-1) %}
           {% for card in hand %}
-            {% if card.suit.value == suit_name and card.rank == rv %}
-              {% set ns.idx = loop.index0 %}
+            {% if card.suit.value == suit_name and card.rank == rank_value %}
+              {% set name_space.name_space_index = loop.index0 %}
             {% endif %}
           {% endfor %}
-          {% if ns.idx >= 0 %}
-          <td>{{ hand[ns.idx] }}<sub>{{ ns.idx }}</sub></td>
+          {% if name_space.name_space_index >= 0 %}
+          <td>{{ hand[name_space.name_space_index] }}<sub>{{ name_space.name_space_index }}</sub></td>
           {% else %}
           <td>_</td>
           {% endif %}
@@ -167,7 +152,7 @@
       </form>
       {% endif %}
     {% else %}
-      Waiting for opponent...
+      <span class="waiting-label">Waiting for opponent...</span>
     {% endif %}
   </div>
   {% endmacro %}

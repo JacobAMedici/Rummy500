@@ -1,28 +1,28 @@
 from model.Card import *
 
+RANK_SCORE = {
+  Rank.TWO: 5,
+  Rank.THREE: 5,
+  Rank.FOUR: 5,
+  Rank.FIVE: 5,
+  Rank.SIX: 5,
+  Rank.SEVEN: 5,
+  Rank.EIGHT: 5,
+  Rank.NINE: 5,
+  Rank.TEN: 10,
+  Rank.JACK: 10,
+  Rank.QUEEN: 10,
+  Rank.KING: 10,
+  Rank.ACE: 15
+}
+
 def tally_scores(player):
   score = 0
 
-  rank_score = {
-    Rank.TWO: 5,
-    Rank.THREE: 5,
-    Rank.FOUR: 5,
-    Rank.FIVE: 5,
-    Rank.SIX: 5,
-    Rank.SEVEN: 5,
-    Rank.EIGHT: 5,
-    Rank.NINE: 5,
-    Rank.TEN: 10,
-    Rank.JACK: 10,
-    Rank.QUEEN: 10,
-    Rank.KING: 10,
-    Rank.ACE: 15
-  }
-
   for card in player.played_cards:
-    score += rank_score[card.rank]
+    score += RANK_SCORE[card.rank]
   for card in player.hand:
-    score -= rank_score[card.rank]
+    score -= RANK_SCORE[card.rank]
 
   player.score += score
 
@@ -53,8 +53,10 @@ def get_all_possible_melds(unmelded_cards, set_cards, run_cards):
         if all(window):
           possible_meld = []
           for card in suited_cards:
-            #TODO: Fix this :)
-            position = 0 if card.rank == Rank.ACE and period == 0 else (13 if card.rank == Rank.ACE else card.rank - 1)
+            if card.rank == Rank.ACE:
+                position = 0 if period == 0 else 13
+            else:
+                position = card.rank - 1
             if period <= position < period + meld_size:
               possible_meld.append(card)
           possible_melds.append((possible_meld, MeldType.RUN))

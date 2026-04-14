@@ -7,8 +7,11 @@ class SimpleAIPlayer(AIPlayer):
   def have_player_draw(self, game, epsilon, decay):
     return -1
 
+
   def have_player_act(self, game, epsilon, decay):
-    actions = [None]
+    actions = []
+    actions.append(None)
+
     for meld in Helpers.get_all_possible_melds(game.players_turn.hand, [], []):
       card_indices = [game.players_turn.hand.index(card) for card in meld[0]]
       actions.append((card_indices, meld[1]))
@@ -18,6 +21,7 @@ class SimpleAIPlayer(AIPlayer):
         actions.append(([card_index], meld.meld_type))
 
     return random.choice(actions)
+
 
   def have_player_discard(self, game, epsilon, decay):
     return random.randint(0, len(game.players_turn.hand) - 1)

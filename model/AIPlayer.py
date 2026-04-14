@@ -7,23 +7,24 @@ class AIPlayer(Player):
   def have_player_draw(self, game, epsilon, decay):
     pass
 
+
   @abstractmethod
   def have_player_act(self, game, epsilon, decay):
     pass
 
+
   @abstractmethod
   def have_player_discard(self, game, epsilon, decay):
     pass
+
 
   @staticmethod
   def handle_AI_turn(game):
     while True:
       draw_index = game.players_turn.have_player_draw(game, 0.9, 0.5)
       if draw_index == -1:
-        if game.draw_from_deck():
-          break
-        else:
-          break
+        game.draw_from_deck()
+        break
       else:
         if game.draw_from_discard(draw_index):
           break

@@ -1,6 +1,7 @@
 import random
 from enum import IntEnum, Enum
 
+
 class Rank(IntEnum):
   TWO = 2
   THREE = 3
@@ -16,21 +17,25 @@ class Rank(IntEnum):
   KING = 13
   ACE = 14
 
+
 class Suit(Enum):
   CLUBS = "Clubs"
   DIAMONDS = "Diamonds"
   HEARTS = "Hearts"
   SPADES = "Spades"
 
+
 class MeldType(Enum):
   SET = "Set"
   RUN = "Run"
   INVALID = "Invalid"
 
+
 class Card:
   def __init__(self, rank, suit):
     self.rank = rank
     self.suit = suit
+
 
   def __str__(self):
     suit_symbols = {
@@ -56,13 +61,16 @@ class Card:
     }
     return f"{rank_letters[self.rank]}{suit_symbols[self.suit]}"
 
+
   def __eq__(self, other):
     if not isinstance(other, Card):
       return False
     return self.rank == other.rank and self.suit == other.suit
 
+
   def __hash__(self):
     return hash((self.rank, self.suit))
+
 
 class Deck:
   def __init__(self):
@@ -71,17 +79,22 @@ class Deck:
       for suit in Suit:
         self.deck.append(Card(rank, suit))
 
+
   def shuffle(self):
     random.shuffle(self.deck)
+
 
   def deal(self):
     return self.deck.pop()
 
+
   def __len__(self):
     return len(self.deck)
 
+
   def pop(self):
     return self.deck.pop()
+
 
 def is_valid_meld(cards):
   if len(cards) < 3:
@@ -118,9 +131,11 @@ class Meld:
   def accepts(self, new_cards):
     return is_valid_meld(self.cards + new_cards)[0]
 
+
   def add(self, new_cards):
     if is_valid_meld(self.cards + new_cards):
       self.cards.extend(new_cards)
+
 
   def __str__(self):
     sorted_cards = sorted(self.cards, key=lambda card: card.rank)

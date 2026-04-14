@@ -21,13 +21,18 @@ class Game:
     self.player2.hand.sort(key=lambda x: (x.rank, x.suit.name))
     self.player_must_use = None
 
+
   def discard(self, index):
     try:
-      self.discard_pile.append(self.players_turn.hand.pop(index))
+      card = self.players_turn.hand.pop(index)
+      self.discard_pile.append(card)
+      if card in self.players_turn.visible_hand:
+        self.players_turn.visible_hand.remove(card)
       self._change_turn()
       return True
     except IndexError as e:
       return False
+
 
   def draw_from_deck(self):
     try:
@@ -39,6 +44,7 @@ class Game:
     except Exception as e:
       print(e)
       return False
+
 
   def draw_from_discard(self, index):
     try:
@@ -56,6 +62,7 @@ class Game:
       print(e)
       return False
 
+
   def done_acting(self):
     if self.player_must_use is not None:
       self.phase = 'act'
@@ -63,6 +70,7 @@ class Game:
     else:
       self.phase = 'discard'
       return True
+
 
   def play_cards(self, card_indices, meld_type):
     cards = [self.players_turn.hand[index] for index in card_indices]
@@ -99,14 +107,16 @@ class Game:
         self.players_turn.played_cards.append(card)
       self.player_must_use = None
 
+
   def removed_played_cards(self, cards):
     for card in cards:
       self.players_turn.hand.remove(card)
       try:
         card_index = self.players_turn.visible_hand.index(card)
         self.players_turn.visible_hand.pop(card_index)
-      except ValueError or IndexError as e:
+      except (ValueError, IndexError) as e:
         continue
+
 
   def _change_turn(self):
     if self.players_turn == self.player1:
@@ -115,12 +125,14 @@ class Game:
       self.players_turn = self.player1
     self.phase = 'draw'
 
+
   def check_round_over(self):
     if len(self.player1.hand) == 0 or len(self.player2.hand) == 0 or len(self.deck) == 0:
       tally_scores(self.player1)
       tally_scores(self.player2)
       return True
     return False
+
 
   def get_legal_discard_draws(self):
     legal_draws = []
@@ -132,18 +144,23 @@ class Game:
 
     return legal_draws
 
+
   def player_can_play_card(self, player, card):
     for meld in self.melds:
       if meld.accepts([card]):
         return True
     potential_player_hand = player.hand.copy()
     potential_player_hand.append(card)
+    # This is added to ensure they don't play every card and don't have a discard left
+    if len(potential_player_hand) == 3:
+      return False
     all_melds = get_all_possible_melds(potential_player_hand, [], [])
     all_melds_with_card = [meld for meld in all_melds if card in meld[0]]
     if len(all_melds_with_card) >= 1:
       return True
     else:
       return False
+
 
   def can_play_cards(self, cards):
     possible_melds = []

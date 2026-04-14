@@ -5,6 +5,7 @@ from model.Player import Player
 from model.SimpleAIPlayer import SimpleAIPlayer
 from controller.NoViewGameController import NoViewGameController
 
+
 MODES = {
   'hh': (Player, Player),
   'ha': (Player, AdvancedAIPlayer),
@@ -13,12 +14,14 @@ MODES = {
   'benchmark': (SimpleAIPlayer, AdvancedAIPlayer)
 }
 
+
 def run_game(player1_type, player2_type):
   player1 = player1_type()
   player2 = player2_type()
 
   app = create_app(player1, player2)
   app.run(debug=True)
+
 
 def run_benchmark(player1_type, player2_type, number_of_games):
   simple_score = 0
@@ -47,6 +50,7 @@ def run_benchmark(player1_type, player2_type, number_of_games):
   print(simple_score, advanced_score, simple_win, advanced_win, ties)
 
 
+
 if __name__ == '__main__':
   mode = sys.argv[1] if len(sys.argv) > 1 else 'hh'
 
@@ -57,4 +61,10 @@ if __name__ == '__main__':
   if mode in ('hh', 'ha', 'ah', 'aa'):
     run_game(p1_type, p2_type)
   else:
-    run_benchmark(p1_type, p2_type, 10)
+    run_benchmark(p2_type, p1_type, 25)
+    # Simple Model Goes First
+    # 5850 15495 0 25 0
+    # 5225 15060 0 25 0
+    # Advanced model goes first
+    # 14455 5355 25 0 0
+    # 15060 5550 25 0 0
