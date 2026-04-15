@@ -16,7 +16,7 @@ class AdvancedAIPlayer(AIPlayer):
       if draw == -1:
         number_hidden_cards, _ = self._expected_number_of_turns(game_copy)
         total_equity = 0
-        for card in self._get_n_hidden_cards(game_copy, number_hidden_cards):
+        for card in self._get_n_hidden_cards(game_copy, game.players_turn, number_hidden_cards):
           new_game_copy = copy.deepcopy(game)
           new_game_copy.players_turn.hand.append(card)
           new_game_copy.deck.pop()
@@ -27,7 +27,7 @@ class AdvancedAIPlayer(AIPlayer):
       else:
         game_copy = copy.deepcopy(game)
         game_copy.draw_from_discard(draw)
-      index_result.append((draw, self._get_state_equity(game_copy)))
+        index_result.append((draw, self._get_state_equity(game_copy)))
 
     return self._make_choice(index_result)
 
@@ -113,10 +113,10 @@ class AdvancedAIPlayer(AIPlayer):
 
 
   @staticmethod
-  def _get_n_hidden_cards(game, number_hidden_cards):
+  def _get_n_hidden_cards(game, drawing_player, number_hidden_cards):
     possible_cards = []
     possible_cards.extend(game.deck.deck)
-    possible_cards.extend(hidden_card for hidden_card in game.players_turn.hand if hidden_card not in game.players_turn.visible_hand)
+    possible_cards.extend(hidden_card for hidden_card in drawing_player.hand if hidden_card not in drawing_player.visible_hand)
     random.shuffle(possible_cards)
     return possible_cards[:number_hidden_cards]
 
@@ -150,16 +150,16 @@ class AdvancedAIPlayer(AIPlayer):
 
   def _expected_number_of_turns(self, game):
     opponent = self._get_opponent(game)
-    if len(opponent.visible_hand) > len(opponent.hand):
-      pass
     number_hidden_cards = len(game.deck) + len(opponent.hand) - len(opponent.visible_hand)
-    conservative_estimated_num_turns = min(len(game.deck), len(opponent.hand), len(game.players_turn.hand)) / 2
+    game_progress_markers = len(game.deck) + len(opponent.hand) / 3 + len(game.players_turn.hand) / 3
+    conservative_estimated_num_turns = game_progress_markers / 3
     return number_hidden_cards, conservative_estimated_num_turns
 
 
   def _prob_card_played(self, card, game):
     if game.player_can_play_card(game.players_turn, card):
-      return 1.0
+      _, expected_num_turns = self._expected_number_of_turns(game)
+      return 1 - 1 / expected_num_turns
 
     cards_of_rank = 0
     for hand_card in game.players_turn.hand + game.discard_pile:
@@ -231,14 +231,14 @@ class AdvancedAIPlayer(AIPlayer):
 
   def _estimate_opp_equity(self, game, monte_carlo_rounds):
     equity = []
-    # TODO: Revert
-    monte_carlo_rounds = 100
     for _ in range(monte_carlo_rounds):
+      # Modify this only for testing
+      monte_carlo_rounds = 1
       game_copy = copy.deepcopy(game)
       target_hand_length = len(game_copy.players_turn.hand)
       new_hand = []
       num_hidden_cards = target_hand_length - len(game_copy.players_turn.visible_hand)
-      new_hand.extend(self._get_n_hidden_cards(game_copy, num_hidden_cards))
+      new_hand.extend(self._get_n_hidden_cards(game_copy, game.players_turn, num_hidden_cards))
       new_hand.extend(game_copy.players_turn.visible_hand)
       game_copy.players_turn.hand = new_hand
       equity.append(self._get_state_equity(game_copy))
