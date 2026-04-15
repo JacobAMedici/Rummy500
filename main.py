@@ -11,13 +11,13 @@ MODES = {
   'ha': (Player, AdvancedAIPlayer),
   'ah': (AdvancedAIPlayer, Player),
   'aa': (AdvancedAIPlayer, AdvancedAIPlayer),
-  'benchmark': (AdvancedAIPlayer, AdvancedAIPlayer)
+  'benchmark': (SimpleAIPlayer, AdvancedAIPlayer)
 }
 
 
 def run_game(player1_type, player2_type):
-  player1 = player1_type(0.5)
-  player2 = player2_type(0.5)
+  player1 = player1_type(0.25)
+  player2 = player2_type(0.25)
 
   app = create_app(player1, player2)
   app.run(debug=True)
@@ -32,8 +32,8 @@ def run_benchmark(player1_type, player2_type, number_of_games):
 
   for game_num in range(number_of_games):
     print("Game num: ", game_num)
-    player1 = player1_type(0.01)
-    player2 = player2_type(1)
+    player1 = player1_type()
+    player2 = player2_type(0.25)
     if game_num % 2 == 0:
       game_controller = NoViewGameController(player1, player2)
       player1_score, player2_score = game_controller.play_game()
@@ -65,4 +65,4 @@ if __name__ == '__main__':
   if mode in ('hh', 'ha', 'ah', 'aa'):
     run_game(p1_type, p2_type)
   else:
-    run_benchmark(p1_type, p2_type, 10)
+    run_benchmark(p1_type, p2_type, 100)

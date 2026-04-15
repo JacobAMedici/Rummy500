@@ -98,7 +98,8 @@ class AdvancedAIPlayer(AIPlayer):
 
     for discard in range(len(game.players_turn.hand)):
       game_copy = copy.deepcopy(game)
-      monte_carlo_rounds = max(10, 50 - len(game.players_turn.played_cards))
+
+      monte_carlo_rounds = len(self._get_opponent(game_copy).hand) * 2
       if game_copy.player_can_play_card(game_copy.players_turn, game_copy.players_turn.hand[discard]):
         game_copy.discard(discard)
         playable_index_net_result.append((discard, self._get_state_equity(game_copy) - self._estimate_opp_equity(game_copy, monte_carlo_rounds)))
@@ -232,8 +233,6 @@ class AdvancedAIPlayer(AIPlayer):
   def _estimate_opp_equity(self, game, monte_carlo_rounds):
     equity = []
     for _ in range(monte_carlo_rounds):
-      # Modify this only for testing
-      monte_carlo_rounds = 1
       game_copy = copy.deepcopy(game)
       target_hand_length = len(game_copy.players_turn.hand)
       new_hand = []
