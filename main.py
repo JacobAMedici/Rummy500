@@ -16,7 +16,7 @@ MODES = {
 
 
 def run_game(player1_type, player2_type):
-  player1 = player1_type(0.25)
+  player1 = player1_type()
   player2 = player2_type(0.25)
 
   app = create_app(player1, player2)
