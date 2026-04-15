@@ -16,7 +16,7 @@ def create_app(player1, player2):
       result = handle_game_over_check()
       if result.location == url_for('winner'):
         return result
-    response = make_response(render_template('index2.html', game=game))
+    response = make_response(render_template('index.html', game=game))
     if isinstance(game.players_turn, AIPlayer):
       response.headers['Refresh'] = '0.1'
     return response
