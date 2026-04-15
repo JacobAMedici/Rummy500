@@ -84,6 +84,7 @@ def create_app(player1, player2):
     return render_template('winner.html', winner=result, p1_score=player1_score, p2_score=player2_score)
 
 
+  # Check if the game over, and if it is, then handle it
   def handle_game_over_check():
     # https://www.w3schools.com/python/ref_keyword_nonlocal.asp
     nonlocal game

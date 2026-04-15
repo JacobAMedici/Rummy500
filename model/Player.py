@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+# This is the general form of the player that the human player uses and other player classes inherit from
 class Player(ABC):
   def __init__(self):
     self.played_cards = []
@@ -10,20 +11,13 @@ class Player(ABC):
     self.score = 0
 
 
+  # At the start of the new game, reset the player's info, except for score
   def new_game(self):
     self.played_cards = []
     self.hand = []
     self.melds = []
     self.visible_hand = []
 
-
+  # Add a card to the player's hand
   def append_player_card(self, card):
     self.hand.append(card)
-
-
-  def remove_player_card(self, card_index):
-    self.hand.pop(card_index)
-
-
-  def add_to_scores(self, score):
-    self.score += score

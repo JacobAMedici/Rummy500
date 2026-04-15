@@ -3,6 +3,7 @@ import copy
 from model.Helpers import tally_scores, get_all_possible_melds
 from model.Card import *
 
+# Game class for game logic and enforcement
 class Game:
   def __init__(self, player1, player2):
     self.player1 = player1
@@ -22,6 +23,7 @@ class Game:
     self.player_must_use = None
 
 
+  # Discard a card at index, return status
   def discard(self, index):
     try:
       card = self.players_turn.hand.pop(index)
@@ -34,6 +36,7 @@ class Game:
       return False
 
 
+  # Draw a card from the deck, return the status
   def draw_from_deck(self):
     try:
       card = self.deck.pop()
@@ -46,6 +49,7 @@ class Game:
       return False
 
 
+  # Draw from the discard pile, return the status
   def draw_from_discard(self, index):
     try:
       if index not in self.get_legal_discard_draws():
@@ -63,6 +67,7 @@ class Game:
       return False
 
 
+  # Declare meld phase of turn over, return status
   def done_acting(self):
     if self.player_must_use is not None:
       self.phase = 'act'
@@ -72,6 +77,7 @@ class Game:
       return True
 
 
+  # Play cards from the players hand to a meld or to form a new meld, return status
   def play_cards(self, card_indices, meld_type):
     cards = [self.players_turn.hand[index] for index in card_indices]
     if self.player_must_use and not self.player_must_use in cards:
@@ -108,6 +114,7 @@ class Game:
       self.player_must_use = None
 
 
+  # Ensure that all cards are removed from the player's hand when played to a meld
   def removed_played_cards(self, cards):
     for card in cards:
       self.players_turn.hand.remove(card)
@@ -118,6 +125,7 @@ class Game:
         continue
 
 
+  # Change the turn
   def _change_turn(self):
     if self.players_turn == self.player1:
       self.players_turn = self.player2
@@ -126,6 +134,7 @@ class Game:
     self.phase = 'draw'
 
 
+  # Check to see if the round is over, return boolean result
   def check_round_over(self):
     if len(self.player1.hand) == 0 or len(self.player2.hand) == 0 or len(self.deck) == 0:
       tally_scores(self.player1)
@@ -134,6 +143,7 @@ class Game:
     return False
 
 
+  # Find all possible legal draws from the discard pile
   def get_legal_discard_draws(self):
     legal_draws = []
     player = copy.deepcopy(self.players_turn)
@@ -145,6 +155,7 @@ class Game:
     return legal_draws
 
 
+  # Check to see if the player can play a single card based on their hand, return the boolean result
   def player_can_play_card(self, player, card):
     for meld in self.melds:
       if meld.accepts([card]):
@@ -164,6 +175,7 @@ class Game:
       return False
 
 
+  # Check to see if the player is able to play a set of cards, return the boolean result
   def can_play_cards(self, cards):
     possible_melds = []
     for meld in self.melds:

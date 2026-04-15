@@ -1,6 +1,7 @@
 import random
 from enum import IntEnum, Enum
 
+# Possible ranks and corresponding values for cards
 class Rank(IntEnum):
   TWO = 2
   THREE = 3
@@ -17,6 +18,7 @@ class Rank(IntEnum):
   ACE = 14
 
 
+# Possible suits for cards
 class Suit(Enum):
   CLUBS = "Clubs"
   DIAMONDS = "Diamonds"
@@ -24,18 +26,20 @@ class Suit(Enum):
   SPADES = "Spades"
 
 
+# Possible types of melds
 class MeldType(Enum):
   SET = "Set"
   RUN = "Run"
   INVALID = "Invalid"
 
 
+# Defines the card object used to store rank and suit data
 class Card:
   def __init__(self, rank, suit):
     self.rank = rank
     self.suit = suit
 
-
+  # Get the string of the card, return the value
   def __str__(self):
     suit_symbols = {
       Suit.SPADES: '♠',
@@ -61,6 +65,7 @@ class Card:
     return f"{rank_letters[self.rank]}{suit_symbols[self.suit]}"
 
 
+  # Check if a card has the same suit and rank, return the boolean result
   def __eq__(self, other):
     if not isinstance(other, Card):
       return False
@@ -71,6 +76,7 @@ class Card:
     return hash((self.rank, self.suit))
 
 
+# Represent the collection of cards in the hidden deck
 class Deck:
   def __init__(self):
     self.deck = []
@@ -95,6 +101,7 @@ class Deck:
     return self.deck.pop()
 
 
+ # Check if a set of cards forms a valid meld, return the boolean result and resulting type
 def is_valid_meld(cards):
   if len(cards) < 3:
     return False, MeldType.INVALID
@@ -118,6 +125,7 @@ def is_valid_meld(cards):
   return False, MeldType.INVALID
 
 
+# Represents a meld, holding cards and a type
 class Meld:
   def __init__(self, cards):
     self.cards = cards
@@ -127,10 +135,12 @@ class Meld:
     self.meld_type = meld_type
 
 
+  # Check to see if you can add a card to the meld
   def accepts(self, new_cards):
     return is_valid_meld(self.cards + new_cards)[0]
 
 
+  # Add a card to the meld
   def add(self, new_cards):
     if is_valid_meld(self.cards + new_cards):
       self.cards.extend(new_cards)

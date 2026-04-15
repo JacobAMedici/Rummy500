@@ -14,8 +14,9 @@ MODES = {
   'benchmark': (SimpleAIPlayer, AdvancedAIPlayer)
 }
 
-
+# Used to play the game with the UI against the AI
 def run_game(player1_type, player2_type):
+  # Configured for ha game mode
   player1 = player1_type()
   player2 = player2_type(0.25)
 
@@ -23,6 +24,7 @@ def run_game(player1_type, player2_type):
   app.run(debug=True)
 
 
+# Used to benchmark the model against the simple AI
 def run_benchmark(player1_type, player2_type, number_of_games):
   simple_score = 0
   advanced_score = 0
@@ -34,6 +36,7 @@ def run_benchmark(player1_type, player2_type, number_of_games):
     print("Game num: ", game_num)
     player1 = player1_type()
     player2 = player2_type(0.25)
+    # Alternate every other hand so the same player is not always going first
     if game_num % 2 == 0:
       game_controller = NoViewGameController(player1, player2)
       player1_score, player2_score = game_controller.play_game()

@@ -4,7 +4,9 @@ import random
 from model import Helpers
 from model.AIPlayer import AIPlayer
 
+# This is the main model for the assignment
 class AdvancedAIPlayer(AIPlayer):
+  # Get the chosen draw action, return the index of the action or -1 to draw from the deck
   def have_player_draw(self, game):
     index_result = []
 
@@ -32,6 +34,7 @@ class AdvancedAIPlayer(AIPlayer):
     return self._make_choice(index_result)
 
 
+  # Get the chosen action of the player, return the indices used to create meld along with the meld type
   def have_player_act(self, game):
     action_result = []
 
@@ -92,6 +95,7 @@ class AdvancedAIPlayer(AIPlayer):
     return self._make_choice(action_result)
 
 
+  # Get the discard action of the player, return the index of the chosen discard
   def have_player_discard(self, game):
     unplayable_index_net_result = []
     playable_index_net_result = []
@@ -113,6 +117,7 @@ class AdvancedAIPlayer(AIPlayer):
       return self._make_choice(playable_index_net_result)
 
 
+  # Used in Monte Carlo simulation to get a selection of hidden cards
   @staticmethod
   def _get_n_hidden_cards(game, drawing_player, number_hidden_cards):
     possible_cards = []
@@ -122,6 +127,7 @@ class AdvancedAIPlayer(AIPlayer):
     return possible_cards[:number_hidden_cards]
 
 
+  # Use the geometric distribution to choose the desired result
   def _make_choice(self, index_result):
     index_result.sort(key=lambda x: x[1], reverse=True)
 
@@ -134,21 +140,25 @@ class AdvancedAIPlayer(AIPlayer):
     return choice[0]
 
 
+  # Get the value of all cards that have been melded, return the value
   @staticmethod
   def _get_melded_value(game):
     return sum(Helpers.RANK_SCORE[card.rank] for card in game.players_turn.played_cards)
 
 
+  # Get the maximum value of all cards in the hand if they are melded, return the value
   @staticmethod
   def _get_max_hand_melded_value(game):
     return sum(Helpers.RANK_SCORE[card.rank] for card in game.players_turn.hand)
 
 
+  # Get the opponent, return the opposing player's object
   @staticmethod
   def _get_opponent(game):
     return game.player2 if game.players_turn == game.player1 else game.player1
 
 
+  # Get the expected number of turns and number of hidden cards
   def _expected_number_of_turns(self, game):
     opponent = self._get_opponent(game)
     number_hidden_cards = len(game.deck) + len(opponent.hand) - len(opponent.visible_hand)
@@ -157,6 +167,7 @@ class AdvancedAIPlayer(AIPlayer):
     return number_hidden_cards, conservative_estimated_num_turns
 
 
+  # Get the probability a card can be played, return the probability
   def _prob_card_played(self, card, game):
     if game.player_can_play_card(game.players_turn, card):
       _, expected_num_turns = self._expected_number_of_turns(game)
@@ -216,6 +227,7 @@ class AdvancedAIPlayer(AIPlayer):
     return min(prob_gets_played, 1.0)
 
 
+  # Get the expected deadwood value for the current player in the game state, return the value
   def _get_expected_deadwood_value(self, game):
     deadwood_value = 0
     for card in game.players_turn.hand:
@@ -223,6 +235,7 @@ class AdvancedAIPlayer(AIPlayer):
     return deadwood_value
 
 
+  # Get the total equity of the game state, return the value
   def _get_state_equity(self, game):
     melded_value = self._get_melded_value(game)
     max_melded_value = self._get_max_hand_melded_value(game)
@@ -230,6 +243,7 @@ class AdvancedAIPlayer(AIPlayer):
     return melded_value + max_melded_value - expected_deadwood_value
 
 
+  # Use Monte Carlo Simulation over monte_carlo_rounds to estimate the equity of an opponent given some discard
   def _estimate_opp_equity(self, game, monte_carlo_rounds):
     equity = []
     for _ in range(monte_carlo_rounds):

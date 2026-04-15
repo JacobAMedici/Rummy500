@@ -2,6 +2,7 @@ from abc import abstractmethod
 
 from model.Player import Player
 
+# This is the class that the two AI Players inherit from
 class AIPlayer(Player):
   def __init__(self, lamda = 1):
     super().__init__()
@@ -24,6 +25,7 @@ class AIPlayer(Player):
 
   @staticmethod
   def handle_AI_turn(game):
+    # Handle Draw Phase
     while True:
       draw_index = game.players_turn.have_player_draw(game)
       if draw_index == -1:
@@ -33,6 +35,7 @@ class AIPlayer(Player):
         if game.draw_from_discard(draw_index):
           break
 
+    # Handle action phase
     while True:
       action = game.players_turn.have_player_act(game)
       if action is None:
@@ -49,6 +52,7 @@ class AIPlayer(Player):
             game.done_acting()
             break
 
+    # Handle discard phase
     while True:
       discard_index = game.players_turn.have_player_discard(game)
       if game.discard(discard_index):

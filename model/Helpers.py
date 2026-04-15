@@ -1,5 +1,6 @@
 from model.Card import *
 
+# Possible scores based on rank
 RANK_SCORE = {
   Rank.TWO: 5,
   Rank.THREE: 5,
@@ -16,6 +17,7 @@ RANK_SCORE = {
   Rank.ACE: 15
 }
 
+# Total the score of the player at the end of the round and add it to their total score
 def tally_scores(player):
   score = 0
 
@@ -27,6 +29,7 @@ def tally_scores(player):
   player.score += score
 
 
+# Get all possible melds based off the player's hand and the current state
 def get_all_possible_melds(unmelded_cards, set_cards, run_cards):
   possible_melds = []
 
